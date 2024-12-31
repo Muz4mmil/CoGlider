@@ -1,45 +1,96 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { View, Text, TouchableWithoutFeedback } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+interface TabIconProps {
+  name: string;
+  focused: boolean;
+  iconName: string;
 }
+
+const TabIcon = ({ name, focused, iconName }: TabIconProps) => {
+  return (
+    <View className="w-20 gap-1 items-center justify-center">
+      <View className={`${focused ? 'bg-[#C8E9FD]' : 'bg-[#f7fcff]'} w-[66px] rounded-full py-1 flex items-center justify-center`}>
+        {focused ?
+          <MaterialCommunityIcons name={iconName as any} size={26} color="black" />
+          : <MaterialCommunityIcons name={`${iconName}-outline` as any} size={26} color="black" />}
+      </View>
+      <Text className={`${focused ? 'font-psemibold' : 'font-pregular'} text-sm`}>
+        {name}
+      </Text>
+    </View>
+  );
+};
+
+const TabsLayout = () => {
+  return (
+    <>
+      <Tabs
+        screenOptions={{
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            height: 72,
+            paddingBottom: 10,
+            paddingTop: 16,
+            shadowColor: 'transparent',
+            backgroundColor: '#f7fcff',
+          },
+          tabBarButton: (props) => (
+            <TouchableWithoutFeedback {...props}>
+              <View className='flex-1 items-center mt-[5px]'>
+                {props.children}
+              </View>
+            </TouchableWithoutFeedback>
+          ),
+        }}
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name="Find" focused={focused} iconName="map-marker-account" />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="my-chats"
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name="My Chats" focused={focused} iconName="message" />
+            ),
+          }}
+        />
+        {/* <Tabs.Screen
+          name="requests"
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                name="Requests"
+                focused={focused}
+                iconName="account-multiple-plus"
+              />
+            ),
+          }}
+        /> */}
+        <Tabs.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name="Profile" focused={focused} iconName="account-cog" />
+            ),
+          }}
+        />
+      </Tabs>
+      <StatusBar style="dark" />
+    </>
+  );
+};
+
+export default TabsLayout;

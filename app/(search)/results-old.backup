@@ -1,0 +1,208 @@
+import { View, Text, Image, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { router, useLocalSearchParams } from 'expo-router';
+import { fetchResults } from '@/libs/fetchResults';
+import Swiper from 'react-native-deck-swiper';
+import * as Animatable from 'react-native-animatable';
+import Button from '@/components/Button';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { createRoom } from '@/libs/firebase-messaging';
+
+interface IUserInfo {
+  id: string
+  name: string
+  email: string
+  photoUrl: string
+  hasCompletedOnboarding: boolean
+  location: {
+    long: string
+    lat: string
+  }
+  skills: string[]
+  distance: number
+  cardColor?: string
+}
+
+const Results = () => {
+  const { user, userInfo } = useGlobalContext();
+  const { skills, projectDetails } = useLocalSearchParams();
+  const skillsArray = typeof skills === 'string' ? skills.split(',') : skills;
+  const [matchingUsers, setMatchingUsers] = useState<IUserInfo[]>([]);
+  const [swipedAll, setSwipedAll] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false)
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const results = await fetchResults(skillsArray, userInfo);
+      const cardsColor = ['#fee2e2', '#e0f2fe', '#fef3c7'];
+
+      const resultsWithColors = results
+        .filter(user => userInfo?.email !== user.email)
+        .map((user, index) => ({
+          ...user,
+          cardColor: cardsColor[index % cardsColor.length]
+        }));
+
+      setMatchingUsers(resultsWithColors);
+      setSwipedAll(false);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (skills && userInfo) {
+      fetchUsers();
+    }
+  }, []);
+
+  const handleRefresh = () => {
+    fetchUsers();
+  };
+
+  const handleChatClick = async (userId: string, name: string) => {
+    setButtonLoading(true)
+    if (user) {
+      const roomId = await createRoom(user.uid, userId);
+      router.push(`/chat/${roomId}`)
+      router.push({
+        pathname: '/chat/[chatId]',
+        params: {
+          chatId: roomId,
+          currentUserId: user.uid,
+          otherUserId: userId,
+          otherUserName: name
+        }
+      })
+
+      setButtonLoading(false)
+    } else {
+      console.error('Failed to start chat');
+      setButtonLoading(false)
+    }
+  }
+
+  const renderCard = (user: IUserInfo) => {
+    if (!user) return null;
+
+    return (
+      <View
+        style={{ backgroundColor: user.cardColor }}
+        className="h-[70vh] rounded-3xl border-2 p-6 shadow-xl items-center"
+      >
+        <Image
+          source={{ uri: user.photoUrl || '/api/placeholder/400/320' }}
+          className="h-40 w-40 rounded-3xl border-2 border-black bg-gray-100"
+        />
+
+        <Text className="mt-4 text-2xl font-pbold text-center text-gray-900">{user.name}</Text>
+
+        <View className="w-full mt-6 border border-transparent">
+          <View className="flex-row justify-between">
+            <Text className="text-lg font-psemibold text-gray-700">Skills:</Text>
+            <Text className="font-pmedium text-gray-700">5 matched</Text>
+          </View>
+          <View className="flex-row flex-wrap gap-2 mt-2">
+            {user.skills.map((skill, index) => (
+              <View key={index} className="rounded-lg bg-white px-3 py-1">
+                <Text className="font-pregular text-sm">{skill}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View className="w-full mt-10 ">
+          <View className="flex-row justify-between">
+            <Text className="text-lg font-psemibold text-gray-700">Address:</Text>
+            <Text className="font-pmedium text-gray-700">{user.distance.toFixed(1)} km away</Text>
+          </View>
+          <View className="flex-row flex-wrap gap-2 mt-2">
+            <Text>H.no. 69, Lane 23, New Baijipura, Aurangabad</Text>
+          </View>
+        </View>
+
+        <Button
+          title='Chat'
+          handlePress={() => handleChatClick(user.id, user.name)}
+          loading={buttonLoading}
+          containerStyles='bg-white w-full mt-auto rounded-xl'
+        />
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color={'black'} />
+      </View>
+    );
+  }
+
+  if (matchingUsers.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-xl">No matches found</Text>
+        <TouchableOpacity
+          onPress={handleRefresh}
+          activeOpacity={0.7}
+          className={`border-2 border-black rounded-3xl py-4 px-4 mt-3`}
+        >
+          <MaterialCommunityIcons name="refresh" size={30} color="black" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (swipedAll) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center">
+        <Text className="text-xl">OH oh!, No more matches found</Text>
+        <TouchableOpacity
+          onPress={handleRefresh}
+          activeOpacity={0.7}
+          className={`border-2 border-black rounded-3xl py-4 px-4 mt-3`}
+        >
+          <MaterialCommunityIcons name="refresh" size={30} color="black" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView className="flex-1 bg-white">
+      <Text className="mt-8 text-center text-2xl font-semibold">
+        Find your perfect Project Partner
+      </Text>
+
+      <View className="">
+        <View className='mt-4 flex-row justify-center items-center gap-3 px-4'>
+          <Text className="text-sm font-pregular text-center text-gray-500">Prev</Text>
+          <MaterialCommunityIcons name="gesture-swipe" size={16} color="gray" />
+          <Text className="text-sm font-pregular text-center text-gray-500">Next</Text>
+        </View>
+        <Swiper
+          cards={matchingUsers}
+          renderCard={renderCard}
+          cardIndex={0}
+          backgroundColor={'transparent'}
+          stackSize={3}
+          disableTopSwipe={true}
+          disableBottomSwipe={true}
+          verticalSwipe={false}
+          outputRotationRange={["-10deg", "0deg", "10deg"]}
+          secondCardZoom={0.8}
+          goBackToPreviousCardOnSwipeLeft={true}
+          onSwipedAll={() => setSwipedAll(true)}
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+export default Results; 
