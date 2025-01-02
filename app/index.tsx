@@ -13,7 +13,7 @@ export default function Index() {
 
   const { loading, user, userInfo, signup, signin } = useGlobalContext()
 
-  if (user && !userInfo?.hasCompletedOnboarding) {
+  if (!loading && userInfo && !userInfo.hasCompletedOnboarding) {
     return <Redirect href="/onboard" />
   }
 
@@ -26,6 +26,7 @@ export default function Index() {
     password: '',
     confirmPassword: ''
   })
+
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -73,7 +74,7 @@ export default function Index() {
   }
 
   return (
-    !user && <SafeAreaView className="h-full bg-white justify-center items-center">
+    !loading && !user && !userInfo && <SafeAreaView className="h-full bg-white justify-center items-center">
       <ScrollView className="w-full px-4">
         <Animatable.View className={`mb-10 mt-20 items-center justify-center`}
           style={{ transform: [{ scale: currentScreen === 'welcome' ? 1.5 : 1 }, { translateY: currentScreen === 'welcome' ? 40 : 0 }] }}

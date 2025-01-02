@@ -7,6 +7,7 @@ import TinderCard from 'react-tinder-card';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Button from '@/components/Button';
 import { createRoom } from '@/libs/firebase-messaging';
+import images from '@/constants/images';
 
 interface IUserInfo {
   id: string
@@ -144,7 +145,7 @@ const Results = () => {
           className="h-[70vh] rounded-3xl border-2 p-6 shadow-xl items-center absolute w-full"
         >
           <Image
-            source={{ uri: user.photoUrl || '/api/placeholder/400/320' }}
+            source={{ uri: user.photoUrl }}
             className="h-40 w-40 rounded-3xl border-2 border-black bg-gray-100"
           />
 

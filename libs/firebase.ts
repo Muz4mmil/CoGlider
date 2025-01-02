@@ -4,7 +4,6 @@ import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } fro
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import cloudinary from "@/configs/cloudinary-config";
 import { upload } from 'cloudinary-react-native'
-import { fill } from "@cloudinary/url-gen/actions/resize";
 
 
 export const signUp = async (name: string, email: string, password: string) => {
@@ -15,6 +14,7 @@ export const signUp = async (name: string, email: string, password: string) => {
     if (name && user) {
       await updateProfile(user, {
         displayName: name,
+        photoURL: 'https://res.cloudinary.com/dsccpsoaw/image/upload/v1735838114/pairglide/profilepictures/default.png',
       })
     }
 
@@ -24,12 +24,13 @@ export const signUp = async (name: string, email: string, password: string) => {
     await setDoc(doc(db, "users", user.uid), {
       name,
       email,
+      address: '',
       location: {
         long: "0",
         lat: "0",
       },
       skills: [],
-      photoUrl: user.photoURL || '',
+      photoUrl: user.photoURL || 'https://res.cloudinary.com/dsccpsoaw/image/upload/v1735838114/pairglide/profilepictures/default.png',
       hasCompletedOnboarding: false,
     });
 
@@ -165,9 +166,10 @@ export const updateSkills = async (skills: string[], user: any) => {
   }
 }
 
-export const updateLocation = async (long: string, lat: string, user: any) => {
+export const updateLocation = async (address: string, long: string, lat: string, user: any) => {
   try {
     await updateDoc(doc(db, "users", user.uid), {
+      address,
       location: {
         long,
         lat,

@@ -4,12 +4,13 @@ import React from 'react'
 interface CustomModalProps {
   visible: boolean
   title: string
+  confirmButtonText: string
   message?: string
   onConfirm: () => void
   onCancel: () => void
 }
 
-const CustomModal = ({ visible, title, message, onConfirm, onCancel }: CustomModalProps) => {
+const CustomModal = ({ visible, title, confirmButtonText, message, onConfirm, onCancel }: CustomModalProps) => {
   return (
     <Modal
       visible={visible}
@@ -28,7 +29,7 @@ const CustomModal = ({ visible, title, message, onConfirm, onCancel }: CustomMod
             </TouchableOpacity>
 
             <TouchableOpacity onPress={onConfirm} className='bg-red-200 border-2 rounded-2xl py-2 px-4 flex-1'>
-              <Text className='text-lg text-center font-psemibold mt-0.5'>Confirm</Text>
+              <Text className='text-lg text-center font-psemibold mt-0.5'>{confirmButtonText}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -14,7 +14,7 @@ interface ChatItem { [key: string]: any; id: string; }
 const ChatUser = ({ item, currentUserId }: { item: ChatItem, currentUserId: string | undefined }) => {
   const [userInfo, setUserInfo] = useState<DocumentData | undefined>()
   const otherParticipantId = item.participants.find((id: string) => id !== currentUserId)
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -42,11 +42,17 @@ const ChatUser = ({ item, currentUserId }: { item: ChatItem, currentUserId: stri
       })}
       className='flex-row mb-8 items-center'
     >
-      <Image source={userInfo.photoUrl ? { uri: userInfo.photoUrl } : images.defaultProfile} className='h-[60px] w-[60px] border rounded-xl' resizeMode='cover' />
+      <Image source={{ uri: userInfo?.photoUrl }} className='h-[60px] w-[60px] border rounded-xl' resizeMode='cover' />
       <View className='mx-4'>
-        <Text numberOfLines={1} className='font-pmedium text-xl mb-2'>{userInfo.name}</Text>
-        <Text numberOfLines={1} className='text-gray-500'>{item.lastMessage || "Tap to start chatting"}</Text>
+        <Text numberOfLines={1} className='font-pmedium text-xl mb-1'>{userInfo.name}</Text>
+        <Text
+          numberOfLines={1}
+          className={`${!item.lastMessageReadBy.includes(currentUserId) ? 'font-psemibold text-sky-700' : 'font-pregular text-gray-500'}`}
+        >
+          {item.lastMessage || "Tap to start chatting"}
+        </Text>
       </View>
+      {!item.lastMessageReadBy.includes(currentUserId) && <View className='h-4 w-4 ml-auto mr-4 border rounded-full bg-sky-500'></View>}
     </TouchableOpacity>
   )
 }

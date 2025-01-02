@@ -17,14 +17,15 @@ export const createRoom = async (myId: string, userId: string) => {
   const chatData = {
     participants: [myId, userId],
     lastMessage: "",
-    LastMessageTimestamp: null
+    lastMessageTimestamp: null,
+    lastMessageReadBy: []
   }
 
   const newChat = await addDoc(chatsRef, chatData)
   return newChat.id;
 }
 
-export const sendMessage = async (chatId: string, userId: string, text: string) => {
+export const sendMessage = async (chatId: string, userId: string, senderName: string | null | undefined, text: string) => {
   const messageData = {
     senderId: userId,
     text,
@@ -37,7 +38,6 @@ export const sendMessage = async (chatId: string, userId: string, text: string) 
     const participants = chatDoc.data()?.participants;
     const recipientId = participants.find((id: string) => id !== userId);
 
-    // Get recipient's push token
     const recipientDoc = await getDoc(doc(db, "users", recipientId));
     const recipientToken = recipientDoc.data()?.expoPushToken;
     
@@ -46,6 +46,7 @@ export const sendMessage = async (chatId: string, userId: string, text: string) 
     await updateDoc(doc(db, "chats", chatId), {
       lastMessage: text,
       lastMessageTimestamp: serverTimestamp(),
+      lastMessageReadBy: [userId],
     });
 
     if (recipientToken) {
@@ -57,7 +58,7 @@ export const sendMessage = async (chatId: string, userId: string, text: string) 
         },
         body: JSON.stringify({
           to: recipientToken,
-          title: 'New Message',
+          title: senderName,
           body: text,
           data: { chatId, senderId: userId }
         }),

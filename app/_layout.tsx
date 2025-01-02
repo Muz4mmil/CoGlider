@@ -4,6 +4,7 @@ import { Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700
 import "../global.css";
 import { useEffect } from "react";
 import GlobalProvider, { useGlobalContext } from "@/context/GlobalProvider";
+import 'react-native-get-random-values';
 
 import * as Notifications from 'expo-notifications';
 
@@ -14,7 +15,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
-
 
 SplashScreen.preventAutoHideAsync();
 

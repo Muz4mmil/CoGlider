@@ -15,7 +15,7 @@ const Profile = () => {
       <ScrollView className='flex-1 px-4'>
         <View className=' justify-between items-center mb-14 mt-20'>
           <Image
-            source={userInfo?.photoUrl ? { uri: userInfo?.photoUrl } : images.defaultProfile}
+            source={{ uri: userInfo?.photoUrl }}
             className='h-36 w-36 border-2 rounded-xl'
             resizeMode='cover'
           />
@@ -28,7 +28,7 @@ const Profile = () => {
             <Text className="font-pmedium">Edit</Text>
           </View>
           <View className="flex-row flex-wrap gap-2 mt-4">
-            {userInfo?.skills.map((skill: string, index: number) => (
+            {userInfo?.skills && userInfo?.skills.map((skill: string, index: number) => (
               <View key={index} className="rounded-lg border px-3 py-1 bg-white">
                 <Text className="font-pregular text-base">{skill}</Text>
               </View>
@@ -42,12 +42,15 @@ const Profile = () => {
             <Text className="font-pmedium">Edit</Text>
           </View>
           <View className="flex-row flex-wrap gap-2 mt-4">
-            <Text className='text-lg font-pmedium'>H.no. 69, Lane 23, New Baijipura, Aurangabad</Text>
+            <Text className='text-lg font-pregular text-gray-600'>{userInfo?.address}</Text>
           </View>
         </View>
 
         <TouchableOpacity onPress={() => setConfirmLogoutVisible(true)} className='bg-red-200 border-2 rounded-2xl py-2 px-4 w-40'>
           <Text className='text-lg text-center font-psemibold mt-0.5'>Logout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/onboard')} className='bg-red-200 border-2 rounded-2xl py-2 px-4 w-40'>
+          <Text className='text-lg text-center font-psemibold mt-0.5'>Onboard</Text>
         </TouchableOpacity>
         {/* <TouchableOpacity onPress={() => router.push('/onboard')} className='bg-black p-2 rounded-lg'><Text className='text-white'>Onboard</Text></TouchableOpacity> */}
       </ScrollView>
@@ -55,6 +58,7 @@ const Profile = () => {
       <CustomModal
         visible={confirmLogoutVisible}
         title='Confirm Logout?'
+        confirmButtonText='Logout'
         onCancel={() => setConfirmLogoutVisible(false)}
         onConfirm={() => {
           logout()

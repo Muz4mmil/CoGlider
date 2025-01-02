@@ -20,6 +20,7 @@ const OnBoard = () => {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [location, setLocation] = useState({ long: '0', lat: '0' })
+  const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
 
   const screen1Ref = useRef<Animatable.View & { animate: any }>(null)
@@ -62,7 +63,7 @@ const OnBoard = () => {
     if (location.long !== '0' && location.lat !== '0') {
       setLoading(true)
       try {
-        const result = await updateLocation(location.long, location.lat, user)
+        const result = await updateLocation(address, location.long, location.lat, user)
         if (result) {
           setLoading(false)
           router.push('/home')
@@ -174,6 +175,8 @@ const OnBoard = () => {
           <LocationScreen
             location={location}
             setLocation={setLocation}
+            address={address}
+            setAddress={setAddress}
             loading={loading}
             handleLocationUpdate={handleLocationUpdate}
             handleScreenChange={handleScreenChange}

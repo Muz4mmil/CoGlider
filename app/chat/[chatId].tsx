@@ -7,15 +7,15 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { getMessages, sendMessage } from '@/libs/firebase-messaging'
 import InputField from '@/components/InputField'
 import { db } from '@/configs/firebase-config'
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion } from 'firebase/firestore'
 
 const Chat = () => {
   const { user } = useGlobalContext()
-  const { chatId, currentUserId, otherUserId, otherUserName } = useLocalSearchParams() as { 
-    chatId: string, 
-    currentUserId: string, 
-    otherUserId: string, 
-    otherUserName: string 
+  const { chatId, currentUserId, otherUserId, otherUserName } = useLocalSearchParams() as {
+    chatId: string,
+    currentUserId: string,
+    otherUserId: string,
+    otherUserName: string
   }
 
   const flatListRef = useRef<FlatList>(null)
@@ -33,15 +33,19 @@ const Chat = () => {
         id: doc.id,
         ...doc.data()
       }))
-      
+
       setMessages(newMessages)
-      
+
       if (!initialLoad && flatListRef.current && newMessages.length > messages.length) {
         setTimeout(() => {
           flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
         }, 100)
       }
-      
+
+      updateDoc(doc(db, "chats", chatId), {
+        lastMessageReadBy: arrayUnion(currentUserId),
+      });
+
       if (initialLoad) {
         setInitialLoad(false)
       }
@@ -52,10 +56,10 @@ const Chat = () => {
 
   const handleSend = () => {
     if (!newMessage.trim()) return
-    
+
     setNewMessage('')
-    sendMessage(chatId, currentUserId, newMessage)
-    
+    sendMessage(chatId, currentUserId, user?.displayName, newMessage)
+
     setTimeout(() => {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
     }, 100)
@@ -74,10 +78,10 @@ const Chat = () => {
           {item.senderId === currentUserId ? 'You' : otherUserName.split(' ')[0]}
         </Text>
         <Text className='text-xs font-pmedium text-gray-500'>
-          {new Date(item.timestamp?.toDate()).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true 
+          {new Date(item.timestamp?.toDate()).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
           })}
         </Text>
       </View>

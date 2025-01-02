@@ -57,8 +57,8 @@ export const ProfilePictureScreen = ({
       <View className='mt-20 justify-center items-center'>
         <Text className='font-psemibold text-xl'>Wanna Update your Profile Picture?</Text>
         <Image
-          source={selectedImage ? { uri: selectedImage.uri } : { uri: user?.photoURL || images.defaultProfile }}
-          className="mt-10 w-60 h-60 rounded-3xl rounded-b-none border-2 bg-gray-200 overflow-hidden"
+          source={{ uri: selectedImage ? selectedImage.uri : user?.photoURL }}
+          className="mt-10 w-60 h-60 rounded-3xl rounded-b-none border-2 overflow-hidden"
         />
         <Button
           title="Choose a Picture"
