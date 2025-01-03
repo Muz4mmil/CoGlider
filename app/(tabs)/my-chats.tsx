@@ -1,5 +1,5 @@
 import { View, Text, FlatList, Image, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InputField from '@/components/InputField'
 import { useGlobalContext } from '@/context/GlobalProvider'
@@ -59,7 +59,7 @@ const ChatUser = ({ item, currentUserId }: { item: ChatItem, currentUserId: stri
 
 const MyChats = () => {
   const { user } = useGlobalContext()
-  const [searchQuery, setSearchQuery] = useState('')
+  // const [searchQuery, setSearchQuery] = useState('')
   const [chatList, setChatList] = useState<{ [key: string]: any; id: string; }[]>([])
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const MyChats = () => {
   return (
     <SafeAreaView className='bg-white flex-1 px-4'>
       <Text className="mt-6 font-encode text-2xl text-center">My Chats</Text>
-      <InputField title='' value={searchQuery} handleChange={(e) => setSearchQuery(e)} placeholder='Search' />
+      {/* <InputField title='' value={searchQuery} handleChange={(e) => setSearchQuery(e)} placeholder='Search' /> */}
 
       <FlatList
         data={chatList}

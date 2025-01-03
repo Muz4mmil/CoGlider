@@ -64,7 +64,7 @@ export const SkillsScreen = ({
               <Pressable 
                 key={skill}
                 onPress={() => toggleSkill(skill)}
-                className={`py-2 px-4 rounded-full border ${
+                className={`py-2 px-4 rounded-xl border ${
                   selectedSkills.includes(skill) 
                     ? 'bg-amber-100' 
                     : 'bg-white border-gray-300'

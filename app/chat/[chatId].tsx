@@ -67,18 +67,18 @@ const Chat = () => {
 
   const renderMessage = ({ item }: { item: any }) => (
     <View
-      className={`border border-black/50 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
+      className={`shadow border border-gray-200 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
         ${item.senderId === currentUserId ?
           'bg-sky-100 ml-auto rounded-br-sm' :
           'bg-gray-100 rounded-tl-sm'}
       `}
     >
-      <View className='flex-row border border-transparent justify-between mb-1'>
+      <View className='flex-row justify-between mb-1'>
         <Text className='text-sm font-pmedium text-gray-500'>
           {item.senderId === currentUserId ? 'You' : otherUserName.split(' ')[0]}
         </Text>
         <Text className='text-xs font-pmedium text-gray-500'>
-          {new Date(item.timestamp?.toDate()).toLocaleTimeString([], {
+          {item.timestamp && new Date(item.timestamp.toDate()).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
             hour12: true
@@ -91,7 +91,7 @@ const Chat = () => {
 
   return (
     <SafeAreaView className='bg-white flex-1'>
-      <View className='flex-row items-center border-b border-gray-200'>
+      <View className='flex-row items-center border-b border-gray-200 z-50 bg-white'>
         <TouchableOpacity className='p-5' onPress={() => router.back()}>
           <MaterialCommunityIcons name='arrow-left' size={28} />
         </TouchableOpacity>
@@ -116,9 +116,9 @@ const Chat = () => {
         }}
       />
 
-      <View className='flex-row items-center justify-center gap-4 py-4 border-t border-gray-200 mx-4'>
+      <View className='flex-row items-center justify-center gap-4 py-4 bg-white border-t border-gray-200 mx-4'>
         <TextInput
-          className='flex-1 w-full h-full text-xl font-pregular border-2 rounded-xl p-2 px-4'
+          className='flex-1 w-full h-full text-xl font-pregular border-2 rounded-2xl p-2 px-4'
           value={newMessage}
           keyboardType='default'
           placeholder='Message'
@@ -129,7 +129,7 @@ const Chat = () => {
         />
         <TouchableOpacity
           onPress={handleSend}
-          className='border-2 items-center justify-center rounded-xl p-4 ml-[-2px] bg-sky-100'
+          className='border-2 items-center justify-center rounded-2xl p-4 ml-[-2px] bg-sky-200'
         >
           <MaterialCommunityIcons name='send' size={28} />
         </TouchableOpacity>

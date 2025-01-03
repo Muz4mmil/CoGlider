@@ -66,7 +66,7 @@ const OnBoard = () => {
         const result = await updateLocation(address, location.long, location.lat, user)
         if (result) {
           setLoading(false)
-          router.push('/home')
+          router.replace('/home')
         }
       } catch (error) {
         setLoading(false)

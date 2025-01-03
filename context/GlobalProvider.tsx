@@ -14,121 +14,123 @@ interface GlobalContextType {
   signin: (email: string, password: string) => Promise<User | void>;
   logout: () => Promise<void>;
   resetpassword: (email: string) => Promise<void>;
-  updateUserInfo: () => Promise<void>;
 }
 
 const GlobalContext = createContext<GlobalContextType>({
   user: null,
   userInfo: undefined,
-  loading: false,
+  loading: true,
   signup: async () => { },
   signin: async () => { },
   logout: async () => { },
-  resetpassword: async () => { },
-  updateUserInfo: async () => { }
+  resetpassword: async () => { }
 })
 
 export const useGlobalContext = () => useContext(GlobalContext);
 
 const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [userInfo, setUserInfo] = useState<DocumentData | undefined>()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<DocumentData | undefined>();
+
+  const fetchStoredUserInfo = async () => {
+    try {
+      const storedUserInfo = await AsyncStorage.getItem('userInfo');
+      if (storedUserInfo) {
+        setUserInfo(JSON.parse(storedUserInfo));
+      }
+    } catch (error) {
+      console.error('Error fetching stored user info:', error);
+    }
+  };
 
   useEffect(() => {
-    const checkAuthState = async () => {
+    const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
+      setLoading(true);
       try {
-        const token = await AsyncStorage.getItem('token')
-        const storedUserInfo = await AsyncStorage.getItem('userInfo');
-        if (storedUserInfo) {
-          setUserInfo(JSON.parse(storedUserInfo));
+        if (authUser) {
+          setUser(authUser);
+          await fetchStoredUserInfo();
+          const data = await getUserInfo(authUser.uid);
+          setUserInfo(data);
+        } else {
+          setUser(null);
+          setUserInfo(undefined);
         }
-
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-          if (user) {
-            setUser(user)
-            await updateUserInfo()
-            setLoading(false)
-          } else {
-            setUser(null)
-            setLoading(false)
-          }
-        })
-
-        return () => unsubscribe()
       } catch (error) {
-        console.log(error)
+        console.error('Error in auth state change:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    });
 
-    checkAuthState()
-  }, [])
+    return () => unsubscribe();
+  }, []);
 
   const signin = async (email: string, password: string) => {
     try {
-      const newuser = await signIn(email, password)
-      setUser(newuser)
-      return newuser
-
+      const newUser = await signIn(email, password);
+      setUser(newUser);
+      const data = await getUserInfo(newUser.uid);
+      setUserInfo(data);
+      return newUser;
     } catch (error) {
-      console.log(error)
+      console.error('Error signing in:', error);
     }
-  }
+  };
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      const newuser = await signUp(name, email, password)
-      setUser(newuser)
-      return newuser
-
+      const newUser = await signUp(name, email, password);
+      setUser(newUser);
+      const data = await getUserInfo(newUser.uid);
+      setUserInfo(data);
+      return newUser;
     } catch (error) {
-      console.log(error)
+      console.error('Error signing up:', error);
     }
-  }
+  };
 
   const logout = async () => {
     try {
-      await logOut()
-      setUser(null)
-      router.push('/')
+      await logOut();
+      setUser(null);
+      setUserInfo(undefined);
+      await AsyncStorage.removeItem('userInfo');
+      router.push('/');
     } catch (error) {
-      console.log(error)
+      console.error('Error logging out:', error);
     }
-  }
+  };
 
   const resetpassword = async (email: string) => {
     try {
       await resetPassword(email);
     } catch (error) {
+      console.error('Error resetting password:', error);
       throw error;
     }
   };
 
-  const updateUserInfo = async () => {
-    if (user) {
-      await getUserInfo(user.uid).then((data) => {
-        setUserInfo(data)
-        AsyncStorage.setItem('userInfo', JSON.stringify(data));
-      })
-    }
-  }
+  useEffect(() => {
+    console.log('User Info:', userInfo);
+  }, [userInfo]);
 
   return (
-    <GlobalContext.Provider value={{
-      user,
-      userInfo,
-      loading,
-      signin,
-      signup,
-      logout,
-      resetpassword,
-      updateUserInfo
-    }}>
+    <GlobalContext.Provider
+      value={{
+        user,
+        userInfo,
+        loading,
+        signin,
+        signup,
+        logout,
+        resetpassword,
+      }}
+    >
       {children}
     </GlobalContext.Provider>
-  )
-}
+  );
+};
 
 export default GlobalProvider;

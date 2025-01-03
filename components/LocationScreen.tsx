@@ -115,8 +115,9 @@ export const LocationScreen = ({ handleScreenChange, location, setLocation, addr
           />
           <Button
             title="Finish"
-            containerStyles='flex-1 bg-sky-200'
+            containerStyles='flex-1 bg-red-200'
             loading={loading}
+            disabled={!address}
             handlePress={handleLocationUpdate}
           />
         </View>

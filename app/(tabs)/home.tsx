@@ -8,11 +8,7 @@ import { router } from 'expo-router'
 import { registerForPushNotifications } from '@/libs/notifications'
 
 const home = () => {
-  const { user, userInfo, updateUserInfo } = useGlobalContext()
-
-  useEffect(() => {
-    updateUserInfo()
-  }, [])
+  const { user, userInfo } = useGlobalContext()
 
   useEffect(() => {
     if (user) {
@@ -20,7 +16,6 @@ const home = () => {
     }
   }, [user]);
   
-
   return (
     <SafeAreaView className='bg-white flex-1'>
       <Text className="mt-6 font-encode text-2xl text-center">PairGlide</Text>

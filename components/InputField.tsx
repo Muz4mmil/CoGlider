@@ -8,10 +8,11 @@ interface InputFieldProps {
   handleChange: (e: any) => void,
   otherStyles?: string,
   keyboardType?: KeyboardTypeOptions,
-  placeholder?: string
+  placeholder?: string,
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
 }
 
-const InputField = ({ title, value, placeholder, handleChange, otherStyles, keyboardType, ...props }: InputFieldProps) => {
+const InputField = ({ title, value, placeholder, handleChange, otherStyles, keyboardType, autoCapitalize, ...props }: InputFieldProps) => {
   const [showPassword, setShowPassword] = useState(false)
   return (
     <View className={`space-y-2 ${otherStyles}`}>
@@ -26,6 +27,7 @@ const InputField = ({ title, value, placeholder, handleChange, otherStyles, keyb
           placeholderTextColor={'#7b7b8b'}
           onChangeText={handleChange}
           secureTextEntry={(title === 'Password' || title === 'Confirm Password') && !showPassword}
+          autoCapitalize={autoCapitalize || 'sentences'}
         />
 
         {(title === 'Password' || title === 'Confirm Password') && (

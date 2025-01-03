@@ -15,6 +15,7 @@ interface IUserInfo {
   email: string
   photoUrl: string
   hasCompletedOnboarding: boolean
+  address: string
   location: {
     long: string
     lat: string
@@ -151,7 +152,7 @@ const Results = () => {
 
           <Text className="mt-4 text-2xl font-pbold text-center text-gray-900">{user.name}</Text>
 
-          <View className="w-full mt-6 border border-transparent">
+          <View className="w-full mt-6">
             <View className="flex-row justify-between">
               <Text className="text-lg font-psemibold text-gray-700">Skills:</Text>
               <Text className="font-pmedium text-gray-700">5 matched</Text>
@@ -170,9 +171,7 @@ const Results = () => {
               <Text className="text-lg font-psemibold text-gray-700">Address:</Text>
               <Text className="font-pmedium text-gray-700">{user.distance.toFixed(1)} km away</Text>
             </View>
-            <View className="flex-row flex-wrap gap-2 mt-2">
-              <Text>H.no. 69, Lane 23, New Baijipura, Aurangabad</Text>
-            </View>
+            <Text className='font-pregular mt-2'>{user.address}</Text>
           </View>
 
           <Button

@@ -1,4 +1,4 @@
-import { doc, collection, addDoc, serverTimestamp, updateDoc, query, orderBy, onSnapshot, where, getDocs, getDoc } from "firebase/firestore";
+import { doc, collection, addDoc, serverTimestamp, updateDoc, query, orderBy, onSnapshot, where, getDocs, getDoc, or } from "firebase/firestore";
 import { db } from "@/configs/firebase-config";
 
 interface IMessages { id: string;[key: string]: any }
@@ -40,7 +40,7 @@ export const sendMessage = async (chatId: string, userId: string, senderName: st
 
     const recipientDoc = await getDoc(doc(db, "users", recipientId));
     const recipientToken = recipientDoc.data()?.expoPushToken;
-    
+
     await addDoc(collection(doc(db, "chats", chatId), "messages"), messageData);
 
     await updateDoc(doc(db, "chats", chatId), {
@@ -50,21 +50,27 @@ export const sendMessage = async (chatId: string, userId: string, senderName: st
     });
 
     if (recipientToken) {
-      await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: recipientToken,
-          title: senderName,
-          body: text,
-          data: { chatId, senderId: userId }
-        }),
-      });
+      setTimeout(async () => {
+        const chatDoc = await getDoc(doc(db, "chats", chatId));
+        const isReadInChat = chatDoc.data()?.lastMessageReadBy.includes(recipientId);
+        if (!isReadInChat) {
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: recipientToken,
+              title: senderName,
+              body: text,
+              data: { chatId, senderId: userId }
+            }),
+          });
+        }
+      }, 1000);
     }
-    
+
     console.log("Message sent!");
   } catch (error) {
     console.error("Error sending message: ", error);
@@ -87,7 +93,7 @@ export const getMessages = async (chatId: string, callback: (messages: IMessages
 export const getChatList = async (userId: string, callback: React.Dispatch<React.SetStateAction<IMessages[]>>) => {
   const chatRef = collection(db, "chats")
 
-  const q = query(chatRef, where("participants", "array-contains", userId))
+  const q = query(chatRef, where("participants", "array-contains", userId), orderBy("LastMessageTimestamp", "desc"))
 
   onSnapshot(q, async (snapshot) => {
     const chatList = await Promise.all(snapshot.docs.map(async (doc) => {
@@ -101,7 +107,7 @@ export const getChatList = async (userId: string, callback: React.Dispatch<React
       }
       return null;
     }));
-    
+
     const filteredChatList = chatList.filter(chat => chat !== null);
     callback(filteredChatList)
   })
