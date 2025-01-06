@@ -2,9 +2,7 @@ import { auth, db } from "@/configs/firebase-config";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile } from "@firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import cloudinary from "@/configs/cloudinary-config";
-import { upload } from 'cloudinary-react-native'
-
+import axios from 'axios'
 
 export const signUp = async (name: string, email: string, password: string) => {
   try {
@@ -14,7 +12,7 @@ export const signUp = async (name: string, email: string, password: string) => {
     if (name && user) {
       await updateProfile(user, {
         displayName: name,
-        photoURL: 'https://res.cloudinary.com/dsccpsoaw/image/upload/v1735838114/pairglide/profilepictures/default.png',
+        photoURL: `https://res.cloudinary.com/${process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1735838114/pairglide/profilepictures/default.png`,
       })
     }
 
@@ -30,7 +28,7 @@ export const signUp = async (name: string, email: string, password: string) => {
         lat: "0",
       },
       skills: [],
-      photoUrl: user.photoURL || 'https://res.cloudinary.com/dsccpsoaw/image/upload/v1735838114/pairglide/profilepictures/default.png',
+      photoUrl: user.photoURL || `https://res.cloudinary.com/${process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1735838114/pairglide/profilepictures/default.png`,
       hasCompletedOnboarding: false,
     });
 
@@ -109,7 +107,7 @@ export const getUserInfo = async (userId: any) => {
 
 export const searchUsers = async (skills: string | string[]) => {
   const usersRef = collection(db, "users");
-  
+
   const q = query(usersRef, where("skills", "array-contains-any", skills));
 
   const querySnapshot = await getDocs(q);
@@ -118,29 +116,47 @@ export const searchUsers = async (skills: string | string[]) => {
     id: doc.id,
     ...doc.data()
   }));
-  
+
   return users;
 }
 
 export const updateProfilePicture = async (file: any, user: any) => {
+  const formData = new FormData();
+
+  const imageFile = {
+    uri: file.uri,
+    type: 'image/jpeg',
+    name: file.uri.split('/').pop() || 'photo.jpg',
+  };
+  
+  formData.append('file', imageFile);
+  formData.append('upload_preset', 'native');
+
   try {
-    const options = {
-      upload_preset: 'native',
-      unsigned: true,
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      formData,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    if (!response.data || !response.data.secure_url) {
+      throw new Error('Invalid response from Cloudinary');
     }
 
-    await upload(cloudinary, {
-      file: file.uri, options: options, callback: async (error: any, response: any) => {
-        console.log('Uploaded : ', response)
-        await updateProfile(user, {
-          photoURL: response.secure_url,
-        })
+    const url = response.data.secure_url;
 
-        await updateDoc(doc(db, "users", user.uid), {
-          photoUrl: response.secure_url,
-        });
-      }
+    await updateProfile(user, {
+      photoURL: url,
     })
+
+    await updateDoc(doc(db, "users", user.uid), {
+      photoUrl: url,
+    });
 
     return true;
   } catch (error) {
@@ -158,7 +174,7 @@ export const updateSkills = async (skills: string[], user: any) => {
     await updateDoc(doc(db, "users", user.uid), {
       hasCompletedOnboarding: true
     });
-    
+
     return true;
   } catch (error) {
     console.log(error);

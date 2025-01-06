@@ -14,6 +14,7 @@ interface GlobalContextType {
   signin: (email: string, password: string) => Promise<User | void>;
   logout: () => Promise<void>;
   resetpassword: (email: string) => Promise<void>;
+  updateUserData: (id: string) => Promise<void>
 }
 
 const GlobalContext = createContext<GlobalContextType>({
@@ -23,7 +24,8 @@ const GlobalContext = createContext<GlobalContextType>({
   signup: async () => { },
   signin: async () => { },
   logout: async () => { },
-  resetpassword: async () => { }
+  resetpassword: async () => { },
+  updateUserData: async () => { }
 })
 
 export const useGlobalContext = () => useContext(GlobalContext);
@@ -44,6 +46,11 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateUserData = async (id: string) => {
+    const data = await getUserInfo(id);
+    setUserInfo(data);
+  }
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
       setLoading(true);
@@ -51,8 +58,9 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         if (authUser) {
           setUser(authUser);
           await fetchStoredUserInfo();
-          const data = await getUserInfo(authUser.uid);
-          setUserInfo(data);
+          // const data = await getUserInfo(authUser.uid);
+          // setUserInfo(data);
+          await updateUserData(authUser.uid)
         } else {
           setUser(null);
           setUserInfo(undefined);
@@ -71,8 +79,9 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const newUser = await signIn(email, password);
       setUser(newUser);
-      const data = await getUserInfo(newUser.uid);
-      setUserInfo(data);
+      // const data = await getUserInfo(newUser.uid);
+      // setUserInfo(data);
+      await updateUserData(newUser.uid)
       return newUser;
     } catch (error) {
       console.error('Error signing in:', error);
@@ -83,8 +92,9 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const newUser = await signUp(name, email, password);
       setUser(newUser);
-      const data = await getUserInfo(newUser.uid);
-      setUserInfo(data);
+      // const data = await getUserInfo(newUser.uid);
+      // setUserInfo(data);
+      await updateUserData(newUser.uid)
       return newUser;
     } catch (error) {
       console.error('Error signing up:', error);
@@ -126,6 +136,7 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         signup,
         logout,
         resetpassword,
+        updateUserData
       }}
     >
       {children}
