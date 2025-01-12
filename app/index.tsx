@@ -65,7 +65,7 @@ export default function Index() {
           setError("Failed to create user");
         }
       } else {
-        await signin(form.email, form.password);
+        const user = await signin(form.email, form.password);
         if (user) {
           router.replace("/home");
         } else {
@@ -99,7 +99,7 @@ export default function Index() {
           duration={500}
         >
           <Text className="text-2xl font-encode">Welcome To</Text>
-          <Text className="text-4xl font-encode">PairGlide</Text>
+          <Text className="text-4xl font-encode">CoGlider</Text>
         </Animatable.View>
 
         {/* Welcome Screen */}

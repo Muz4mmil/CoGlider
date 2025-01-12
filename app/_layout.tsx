@@ -41,6 +41,7 @@ function RootLayout() {
       <Stack.Screen name="onboard" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(search)" options={{ headerShown: false }} />
+      <Stack.Screen name="(edit-profile)" options={{ headerShown: false }} />
       <Stack.Screen name="chat/[chatId]" options={{ headerShown: false }} />
     </Stack>
   );

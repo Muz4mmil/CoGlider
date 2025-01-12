@@ -1,10 +1,11 @@
-import { View, Text, Image, Alert } from 'react-native'
+import { View, Text, Image, Alert, TextInput } from 'react-native'
 import React, { SetStateAction } from 'react'
 import Button from '@/components/Button'
 import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { ImagePickerAsset } from 'expo-image-picker'
 import images from '@/constants/images';
+import { router } from 'expo-router';
 
 type ProfilePictureScreenProps = {
   user: any
@@ -13,6 +14,9 @@ type ProfilePictureScreenProps = {
   handleScreenChange: (screen: number) => void
   handleImageUpdate: () => void
   loading: boolean
+  fromEdit?: boolean
+  // name?: string | null
+  // setName: React.Dispatch<string | null>
 }
 
 export const ProfilePictureScreen = ({
@@ -21,7 +25,10 @@ export const ProfilePictureScreen = ({
   setSelectedImage,
   handleScreenChange,
   handleImageUpdate,
-  loading
+  loading,
+  fromEdit,
+  // name,
+  // setName
 }: ProfilePictureScreenProps) => {
   const openPicker = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -67,12 +74,23 @@ export const ProfilePictureScreen = ({
         />
       </View>
 
+      {/* {fromEdit && 
+      <View>
+        <TextInput
+          value={name || ''}
+          onChangeText={(e) => setName(e)}
+          placeholder="Name"
+          className="mt-10 text-3xl p-2 border-b-2 border-gray-800 pb-2"
+        />
+      </View>
+      } */}
+
       <View className='pb-6 pt-4 border-t border-gray-200 mt-auto'>
         <View className='flex-row gap-4'>
           <Button
-            title="Skip for now"
+            title={fromEdit ? "Cancel" : "Skip for now"}
             containerStyles='flex-1 bg-white'
-            handlePress={() => handleScreenChange(2)}
+            handlePress={() => fromEdit ? router.back() : handleScreenChange(2)}
           />
           <Button
             title="Update"

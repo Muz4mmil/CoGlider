@@ -48,6 +48,7 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateUserData = async (id: string) => {
     const data = await getUserInfo(id);
+    await AsyncStorage.setItem('userInfo', JSON.stringify(data))
     setUserInfo(data);
   }
 
@@ -145,3 +146,4 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default GlobalProvider;
+;

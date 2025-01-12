@@ -1,7 +1,8 @@
 import { doc, collection, addDoc, serverTimestamp, updateDoc, query, orderBy, onSnapshot, where, getDocs, getDoc, or } from "firebase/firestore";
 import { db } from "@/configs/firebase-config";
+import { getUserInfo } from "./firebase";
 
-interface IMessages { id: string;[key: string]: any }
+interface IMessages { id: string; [key: string]: any }
 
 export const createRoom = async (myId: string, userId: string) => {
   const chatsRef = collection(db, "chats")
@@ -93,22 +94,30 @@ export const getMessages = async (chatId: string, callback: (messages: IMessages
 export const getChatList = async (userId: string, callback: React.Dispatch<React.SetStateAction<IMessages[]>>) => {
   const chatRef = collection(db, "chats")
 
-  const q = query(chatRef, where("participants", "array-contains", userId), orderBy("LastMessageTimestamp", "desc"))
+  const q = query(chatRef, where("participants", "array-contains", userId))
 
   onSnapshot(q, async (snapshot) => {
     const chatList = await Promise.all(snapshot.docs.map(async (doc) => {
       const messagesRef = collection(db, "chats", doc.id, "messages");
       const messagesSnapshot = await getDocs(messagesRef);
       if (!messagesSnapshot.empty) {
+        const otherParticipantId = doc.data().participants.find((id: string) => id !== userId);
+        const otherUserInfo = await getUserInfo(otherParticipantId);
         return {
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          otherUserInfo: { id: otherParticipantId, ...otherUserInfo }
         };
       }
       return null;
     }));
 
     const filteredChatList = chatList.filter(chat => chat !== null);
+    filteredChatList.sort((a: IMessages, b: IMessages) => {
+      const aTimestamp = a.lastMessageTimestamp?.toDate();
+      const bTimestamp = b.lastMessageTimestamp?.toDate();
+      return bTimestamp - aTimestamp;
+    });
     callback(filteredChatList)
   })
 }

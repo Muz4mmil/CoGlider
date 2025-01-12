@@ -7,7 +7,6 @@ import TinderCard from 'react-tinder-card';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Button from '@/components/Button';
 import { createRoom } from '@/libs/firebase-messaging';
-import images from '@/constants/images';
 
 interface IUserInfo {
   id: string
@@ -51,16 +50,16 @@ const Results = () => {
       const results = await fetchResults(skillsArray, userInfo);
       const cardsColor = ['#fee2e2', '#e0f2fe', '#fef3c7'];
 
-      const resultsWithColors = results
+      const matchedUsers = results
         .filter(user => userInfo?.email !== user.email)
         .map((user, index) => ({
           ...user,
           cardColor: cardsColor[index % cardsColor.length]
         }));
 
-      setMatchingUsers(resultsWithColors);
-      setCurrentIndex(resultsWithColors.length - 1);
-      currentIndexRef.current = resultsWithColors.length - 1;
+      setMatchingUsers(matchedUsers);
+      setCurrentIndex(matchedUsers.length - 1);
+      currentIndexRef.current = matchedUsers.length - 1;
       setSwipedAll(false);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -111,7 +110,7 @@ const Results = () => {
     fetchUsers();
   };
 
-  const handleChatClick = async (userId: string, name: string) => {
+  const handleChatClick = async (userId: string, name: string, photoUrl: string) => {
     setButtonLoading(true);
     if (user) {
       const roomId = await createRoom(user.uid, userId);
@@ -121,7 +120,9 @@ const Results = () => {
           chatId: roomId,
           currentUserId: user.uid,
           otherUserId: userId,
-          otherUserName: name
+          otherUserName: name,
+          otherUserPhotoUrl: photoUrl,
+          initialMessage: projectDetails ? `Hi ${name},\nI am currently working on a Project. Here are the details:\n${projectDetails}\nAre you Interested in teaming up?` : ''
         }
       });
       setButtonLoading(false);
@@ -176,7 +177,7 @@ const Results = () => {
 
           <Button
             title='Chat'
-            handlePress={() => handleChatClick(user.id, user.name)}
+            handlePress={() => handleChatClick(user.id, user.name, user.photoUrl)}
             loading={buttonLoading}
             containerStyles='bg-white w-full mt-auto rounded-xl'
           />
@@ -243,16 +244,16 @@ const Results = () => {
           <TouchableOpacity
             onPress={goBack}
             disabled={!canGoBack}
-            className=""
+            className={`flex-row gap-1 items-center ${!canGoBack ? 'opacity-30' : 'opacity-100'}`}
           >
-            <Text className={`${!canGoBack ? 'text-gray-300' : 'text-black'}`}>Undo</Text>
+            <MaterialCommunityIcons name="undo" size={16} color="black" />
+            <Text>Undo</Text>
           </TouchableOpacity>
         </View>
 
         <View className="flex-1 px-4">
           {matchingUsers.map((user, index) => renderCard(user, index))}
         </View>
-
 
       </View>
     </ScrollView>

@@ -1,4 +1,5 @@
 import welcome from "../assets/welcome.png";
 import line from "../assets/line.png";
+import nochats from "../assets/no-chats.png";
 
-export default { welcome, line };
+export default { welcome, line, nochats };

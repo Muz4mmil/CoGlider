@@ -1,21 +1,22 @@
-import { View, Text, TouchableOpacity, FlatList, TextInput } from 'react-native'
+import { View, Text, TouchableOpacity, FlatList, TextInput, Image, Linking } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGlobalContext } from '@/context/GlobalProvider'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
-import { getMessages, sendMessage } from '@/libs/firebase-messaging'
-import InputField from '@/components/InputField'
+import { sendMessage } from '@/libs/firebase-messaging'
 import { db } from '@/configs/firebase-config'
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion } from 'firebase/firestore'
 
 const Chat = () => {
   const { user } = useGlobalContext()
-  const { chatId, currentUserId, otherUserId, otherUserName } = useLocalSearchParams() as {
+  const { chatId, currentUserId, otherUserId, otherUserName, otherUserPhotoUrl, initialMessage } = useLocalSearchParams() as {
     chatId: string,
     currentUserId: string,
     otherUserId: string,
-    otherUserName: string
+    otherUserName: string,
+    otherUserPhotoUrl: string,
+    initialMessage?: string
   }
 
   const flatListRef = useRef<FlatList>(null)
@@ -54,6 +55,10 @@ const Chat = () => {
     return () => unsubscribe()
   }, [messages.length])
 
+  useEffect(() => {
+    if (initialMessage) setNewMessage(initialMessage)
+  }, [])
+
   const handleSend = () => {
     if (!newMessage.trim()) return
 
@@ -65,9 +70,25 @@ const Chat = () => {
     }, 100)
   }
 
+  const renderMessageTextWithLink = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <Text key={index} className='text-blue-600' onPress={() => Linking.openURL(part)}>
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>;
+    });
+  };
+
   const renderMessage = ({ item }: { item: any }) => (
     <View
-      className={`shadow border border-gray-200 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
+      className={`shadow border border-gray-600 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
         ${item.senderId === currentUserId ?
           'bg-sky-100 ml-auto rounded-br-sm' :
           'bg-gray-100 rounded-tl-sm'}
@@ -85,7 +106,7 @@ const Chat = () => {
           })}
         </Text>
       </View>
-      <Text className='text-lg font-pregular'>{item.text}</Text>
+      <Text className='text-lg font-pregular'>{renderMessageTextWithLink(item.text)}</Text>
     </View>
   )
 
@@ -95,6 +116,7 @@ const Chat = () => {
         <TouchableOpacity className='p-5' onPress={() => router.back()}>
           <MaterialCommunityIcons name='arrow-left' size={28} />
         </TouchableOpacity>
+        <Image source={{uri: otherUserPhotoUrl }} className='h-10 w-10 border rounded-lg'/>
         <Text className='text-2xl font-encode ml-3' numberOfLines={1}>{otherUserName}</Text>
       </View>
 
@@ -124,7 +146,7 @@ const Chat = () => {
           placeholder='Message'
           placeholderTextColor={'#7b7b8b'}
           onChangeText={setNewMessage}
-          numberOfLines={3}
+          numberOfLines={6}
           multiline={true}
         />
         <TouchableOpacity

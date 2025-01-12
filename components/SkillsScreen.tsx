@@ -12,6 +12,7 @@ type SkillsScreenProps = {
   loading: boolean
   handleSkillsUpdate: () => void
   handleScreenChange: (screen: number) => void
+  fromEdit?: boolean
 }
 
 export const SkillsScreen = ({
@@ -23,7 +24,8 @@ export const SkillsScreen = ({
   skillsList,
   loading,
   handleSkillsUpdate,
-  handleScreenChange
+  handleScreenChange,
+  fromEdit
 }: SkillsScreenProps) => {
   return (
     <View className='flex-1 px-4'>
@@ -101,12 +103,12 @@ export const SkillsScreen = ({
       <View className='pb-6 pt-4 border-t border-gray-200'>
         <View className='flex-row gap-4'>
           <Button 
-            title="Back" 
+            title={fromEdit ? "Cancel" : "Back" }
             containerStyles='flex-1 bg-white' 
             handlePress={() => handleScreenChange(1)} 
           />
           <Button 
-            title="Next" 
+            title={fromEdit ? "Update" : "Next" }
             containerStyles='flex-1 bg-amber-200' 
             handlePress={handleSkillsUpdate}
             disabled={selectedSkills.length === 0}

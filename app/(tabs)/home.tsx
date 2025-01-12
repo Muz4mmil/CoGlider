@@ -18,7 +18,7 @@ const home = () => {
   
   return (
     <SafeAreaView className='bg-white flex-1'>
-      <Text className="mt-6 font-encode text-2xl text-center">PairGlide</Text>
+      <Text className="mt-6 font-encode text-2xl text-center">CoGlider</Text>
 
       <View className="flex-1 justify-center items-center px-4">
         <View className='relative'>
@@ -30,8 +30,8 @@ const home = () => {
           Connect with skilled individuals and bring your ideas to life.
         </Text>
 
-        <Button containerStyles='mt-10 w-full bg-sky-200 py-10' title="Find a Partner for My Project" handlePress={() => router.push('/search-form')} />
-        <Button containerStyles='mt-6 w-full bg-white py-10' title="Find Someone Like Me" handlePress={() => router.push({ pathname: '/results', params: { skills: userInfo?.skills } })} />
+        <Button containerStyles='mt-10 w-full bg-sky-200 py-[40px]' title="Find a Partner for My Project" handlePress={() => router.push('/search-form')} />
+        <Button containerStyles='mt-6 w-full bg-white py-[40px]' title="Find Someone Like Me" handlePress={() => router.push({ pathname: '/results', params: { skills: userInfo?.skills } })} />
       </View>
     </SafeAreaView>
   )

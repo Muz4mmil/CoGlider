@@ -4,8 +4,8 @@ const os = require('os'); // Use os.tmpdir() for a guaranteed writable directory
 
 module.exports = {
   expo: {
-    name: "PairGlide",
-    slug: "PairGlide",
+    name: "CoGlider",
+    slug: "CoGlider",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
