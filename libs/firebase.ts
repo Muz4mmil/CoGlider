@@ -54,8 +54,11 @@ export const signIn = async (email: string, password: string) => {
   }
 }
 
-export const logOut = async () => {
+export const logOut = async (userId: string) => {
   try {
+    await updateDoc(doc(db, 'users', userId), {
+      expoPushToken: null,
+    });
     await signOut(auth);
     await AsyncStorage.removeItem('token');
   } catch (error) {

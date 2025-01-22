@@ -1,8 +1,8 @@
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 import Button from "@/components/Button";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import InputField from "@/components/InputField";
 import { StatusBar } from "expo-status-bar";
 import * as Animatable from "react-native-animatable";
@@ -10,27 +10,49 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { Redirect, router } from "expo-router";
 
 export default function Index() {
-  const { loading, user, userInfo, signup, signin } = useGlobalContext();
+  const { loading, user, userInfo, signup, signin, signinWithGoogle } = useGlobalContext();
   const [currentScreen, setCurrentScreen] = useState("welcome");
   const [form, setform] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [googleSignInLoading, setGoogleSignInLoading] = useState(false)
 
-  // Loading State
+  const scaleAnim = useRef(new Animated.Value(currentScreen === "welcome" ? 1.5 : 1)).current;
+  const translateYAnim = useRef(new Animated.Value(currentScreen === "welcome" ? 40 : 0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const scaleAnimation = Animated.timing(scaleAnim, {
+      toValue: currentScreen === "welcome" ? 1.5 : 1,
+      duration: 500,
+      useNativeDriver: true,
+    });
+
+    const translateAnimation = Animated.timing(translateYAnim, {
+      toValue: currentScreen === "welcome" ? 40 : 0,
+      duration: 500,
+      useNativeDriver: true,
+    })
+
+    Animated.parallel([
+      scaleAnimation,
+      translateAnimation,
+    ]).start();
+  }, [currentScreen]);
+
   if (loading) {
     return (
       <View className="flex-1 bg-white h-full w-full items-center justify-center">
-        <ActivityIndicator size={50} />
+        <ActivityIndicator size={50} color={"#0284c7"} />
       </View>
     );
   }
 
-  // Redirect Logic
   if (user) {
     if (userInfo) {
       if (!userInfo.hasCompletedOnboarding) {
@@ -41,11 +63,10 @@ export default function Index() {
 
     return (
       <View className="flex-1 bg-white h-full w-full items-center justify-center">
-        <ActivityIndicator size={50} />
+        <ActivityIndicator size={50} color={"#0284c7"} />
       </View>
     );
   }
-
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -53,8 +74,8 @@ export default function Index() {
 
     try {
       if (currentScreen === "signup") {
-        if (form.password !== form.confirmPassword) {
-          setError("Passwords do not match");
+        if (!form.name || !form.email || !form.password) {
+          setError('All fields are required')
           return;
         }
 
@@ -65,6 +86,10 @@ export default function Index() {
           setError("Failed to create user");
         }
       } else {
+        if (!form.email || !form.password) {
+          setError('All fields are required')
+          return;
+        }
         const user = await signin(form.email, form.password);
         if (user) {
           router.replace("/home");
@@ -83,28 +108,50 @@ export default function Index() {
     }
   };
 
+
+  const handleGoogleSignIn = async () => {
+    setGoogleSignInLoading(true);
+    setError("");
+
+    try {
+      const user = await signinWithGoogle();
+      if (user) {
+        router.replace("/home");
+      } else {
+        setError("Failed to Login with Google");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+    } finally {
+      setGoogleSignInLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView className="h-full bg-white justify-center items-center">
       <ScrollView className="w-full px-4">
         {/* Welcome Animation */}
-        <Animatable.View
-          className={`mb-10 mt-20 items-center justify-center`}
+        <Animated.View
+          className="mb-10 mt-14 items-center justify-center"
           style={{
+            opacity: opacityAnim,
             transform: [
-              { scale: currentScreen === "welcome" ? 1.5 : 1 },
-              { translateY: currentScreen === "welcome" ? 40 : 0 },
+              { scale: scaleAnim },
+              { translateY: translateYAnim },
             ],
           }}
-          transition={["scale", "translateY"]}
-          duration={500}
         >
           <Text className="text-2xl font-encode">Welcome To</Text>
           <Text className="text-4xl font-encode">CoGlider</Text>
-        </Animatable.View>
+        </Animated.View>
 
         {/* Welcome Screen */}
         {currentScreen === "welcome" ? (
-          <Animatable.View animation="fadeIn" duration={1000} className="mt-12">
+          <View className="mt-16">
             <Image source={images.welcome} className="w-full h-80" resizeMode="cover" />
 
             <Text className="w-4/5 text-xl font-pregular mx-auto text-center mt-5">
@@ -113,18 +160,17 @@ export default function Index() {
 
             <Button
               title="Get Started"
-              containerStyles="mt-10 w-full bg-white"
+              containerStyles="mt-10 w-full bg-sky-200"
               handlePress={() => setCurrentScreen("signup")}
             />
-          </Animatable.View>
+          </View>
         ) : (
-          // Sign-Up/Login Form
-          <View>
+          <Animatable.View animation="fadeInUp" duration={500} delay={300}>
             <Text className="text-3xl font-encode mb-8">
               {currentScreen === "signup" ? "Create a new Account" : "Log in your Account"}
             </Text>
 
-            <View className="gap-4">
+            <View className="gap-4 relative">
               {currentScreen === "signup" && (
                 <InputField
                   title="Name"
@@ -148,22 +194,12 @@ export default function Index() {
                 autoCapitalize="none"
                 placeholder="Enter a strong Password"
               />
-              {currentScreen === "signup" && (
-                <InputField
-                  title="Confirm Password"
-                  value={form.confirmPassword}
-                  handleChange={(e) => setform({ ...form, confirmPassword: e })}
-                  autoCapitalize="none"
-                  placeholder="Enter the Password again"
-                />
-              )}
+              {error && <Text className="absolute -bottom-8 left-2 text-red-500 mt-4">{error}</Text>}
             </View>
-
-            {error && <Text className="text-red-500 mt-4">{error}</Text>}
 
             <Button
               title={currentScreen === "signup" ? "Sign Up" : "Log In"}
-              containerStyles="mt-10 w-full bg-sky-200"
+              containerStyles="mt-12 w-full bg-sky-200"
               loading={isLoading}
               disabled={isLoading}
               handlePress={handleSubmit}
@@ -185,7 +221,28 @@ export default function Index() {
                 {currentScreen === "signup" ? "Login" : "Signup"}
               </Text>
             </View>
-          </View>
+
+            <View className="relative h-[1px] border-b border-gray-300 mt-5 mb-8">
+              <Text className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-gray-500">or</Text>
+            </View>
+
+            <TouchableOpacity
+              disabled={googleSignInLoading}
+              activeOpacity={0.7}
+              className={`border-2 bg-white shadow-lg shadow-black/60 border-black rounded-3xl justify-center h-[60px] ${googleSignInLoading && 'opacity-30'}`}
+              onPress={handleGoogleSignIn}
+            >
+              {!googleSignInLoading ?
+                <View className="flex-row items-center justify-center gap-4">
+                  <Image source={images.googleLogo} className="h-8 w-8" />
+                  <Text className="text-center font-pmedium text-xl">
+                    Continue with Google
+                  </Text>
+                </View> :
+                <ActivityIndicator size="small" color="#000" />
+              }
+            </TouchableOpacity>
+          </Animatable.View>
         )}
       </ScrollView>
 

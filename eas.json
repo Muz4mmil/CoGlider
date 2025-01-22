@@ -6,13 +6,43 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "env": {
+          "GOOGLE_SERVICES_JSON_FILE": "google-services.json"
+        }
+      },
+      "ios": {
+        "env": {
+          "GOOGLE_SERVICES_PLIST_FILE": "GoogleService-Info.plist"
+        }
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "env": {
+          "GOOGLE_SERVICES_JSON_FILE": "google-services.json"
+        }
+      },
+      "ios": {
+        "env": {
+          "GOOGLE_SERVICES_PLIST_FILE": "GoogleService-Info.plist"
+        }
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "env": {
+          "GOOGLE_SERVICES_JSON_FILE": "google-services.json"
+        }
+      },
+      "ios": {
+        "env": {
+          "GOOGLE_SERVICES_PLIST_FILE": "GoogleService-Info.plist"
+        }
+      }
     }
   },
   "submit": {

@@ -1,11 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os'); // Use os.tmpdir() for a guaranteed writable directory
-
 module.exports = {
   expo: {
     name: "CoGlider",
-    slug: "CoGlider",
+    slug: "PairGlide",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
@@ -14,6 +10,7 @@ module.exports = {
     newArchEnabled: true,
     ios: {
       supportsTablet: true,
+      googleServicesFile: process.env.GOOGLE_SERVICE_INFO_PLIST,
     },
     android: {
       adaptiveIcon: {
@@ -21,7 +18,7 @@ module.exports = {
         backgroundColor: "#ffffff",
       },
       package: "com.muz4mmil.pairglide",
-      googleServicesFile: path.join(os.tmpdir(), 'google-services.json'), // Use temp directory
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
     },
     web: {
       bundler: "metro",
@@ -46,6 +43,7 @@ module.exports = {
           color: "#ffffff",
         },
       ],
+      ["@react-native-google-signin/google-signin"]
     ],
     experiments: {
       typedRoutes: true,
@@ -60,9 +58,3 @@ module.exports = {
     },
   },
 };
-
-// Dynamically create the google-services.json file in the temp directory
-if (process.env.GOOGLE_SERVICES_JSON) {
-  const googleServicesPath = path.join(os.tmpdir(), 'google-services.json'); // Safe location
-  fs.writeFileSync(googleServicesPath, Buffer.from(process.env.GOOGLE_SERVICES_JSON, 'base64'));
-}

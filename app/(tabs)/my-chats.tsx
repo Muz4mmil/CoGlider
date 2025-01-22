@@ -25,7 +25,7 @@ const ChatUser = ({ item, currentUserId }: { item: ChatItem, currentUserId: stri
           otherUserPhotoUrl: userInfo.photoUrl,
         }
       })}
-      className='flex-row mb-8 items-center'
+      className='flex-row mb-6 items-center'
     >
       <Image source={{ uri: userInfo?.photoUrl }} className='h-[60px] w-[60px] border rounded-xl' resizeMode='cover' />
       <View className='mx-4'>
@@ -45,21 +45,31 @@ const ChatUser = ({ item, currentUserId }: { item: ChatItem, currentUserId: stri
 const MyChats = () => {
   const { user } = useGlobalContext()
   const [searchName, setSearchName] = useState('')
-  const [chatList, setChatList] = useState<{ [key: string]: any; id: string; }[]>([])
+  const [chatList, setChatList] = useState<ChatItem[]>([])
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [loading, setLoading] = useState(true)
 
   const fetchChatList = async () => {
-    if (user) {
+    if (!user) return;
+    
+    try {
       setLoading(true)
-      await getChatList(user.uid, setChatList)
+      await new Promise<void>((resolve) => {
+        getChatList(user.uid, (chats) => {
+          setChatList(chats)
+          resolve()
+        })
+      })
+    } finally {
       setLoading(false)
+      setIsInitialLoad(false)
     }
   }
 
   const filteredChatList = useMemo(() => {
     if (!searchName) return chatList;
     return chatList.filter(chat => 
-      chat.otherUserInfo.name.toLowerCase().includes(searchName.toLowerCase())
+      chat.otherUserInfo?.name?.toLowerCase().includes(searchName.toLowerCase())
     );
   }, [searchName, chatList]);
 
@@ -67,32 +77,47 @@ const MyChats = () => {
     fetchChatList()
   }, [user])
 
+  if (isInitialLoad && loading) {
+    return (
+      <SafeAreaView className='bg-white flex-1 px-4'>
+        <Text className="mt-6 font-encode text-2xl text-center">My Chats</Text>
+        <View className='flex-1 items-center justify-center'>
+          <ActivityIndicator size={40} color='#0284c7' />
+          <Text className="text-lg mt-4 text-gray-500">Loading your chats...</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView className='bg-white flex-1 px-4'>
       <Text className="mt-6 font-encode text-2xl text-center">My Chats</Text>
 
-      {loading ? (
+      {chatList.length === 0 ? (
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size='large' color='#0284c7' />
+          <Image source={images.nochats} className='h-52 w-52 opacity-80' resizeMode='cover' />
+          <Text className='font-encode text-3xl mt-10'>No Chats Yet? :{'('}</Text>
+          <Text className='text-xl font-pmedium text-center px-5 mt-5'>
+            How about finding cool mates from the Find Tab and start chatting?!
+          </Text>
         </View>
-      ) : chatList.length !== 0 ? (
+      ) : (
         <>
-          <InputField title='' value={searchName} handleChange={setSearchName} placeholder='Search' />
+          <InputField 
+            title='' 
+            value={searchName} 
+            handleChange={setSearchName} 
+            placeholder='Search by Name...' 
+          />
           <FlatList
             data={filteredChatList}
             keyExtractor={(item) => item.id}
             renderItem={(item) => (<ChatUser item={item.item} currentUserId={user?.uid} />)}
-            className='mt-10'
+            className='mt-8'
             removeClippedSubviews={true}
             maxToRenderPerBatch={10}
           />
         </>
-      ) : (
-        <View className='flex-1 items-center justify-center'>
-          <Image source={images.nochats} className='h-52 w-52 opacity-80' resizeMode='cover' />
-          <Text className='font-encode text-3xl mt-10'>No Chats Yet? :{'('}</Text>
-          <Text className='text-xl font-pmedium text-center px-5 mt-5'>How about finding cool mates from the Find Tab and start chatting ?!</Text>
-        </View>
       )}
     </SafeAreaView>
   )

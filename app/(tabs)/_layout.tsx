@@ -1,8 +1,9 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useGlobalContext } from '@/context/GlobalProvider';
 
 interface TabIconProps {
   name: string;
@@ -26,6 +27,12 @@ const TabIcon = ({ name, focused, iconName }: TabIconProps) => {
 };
 
 const TabsLayout = () => {
+  const {user, loading} = useGlobalContext()
+
+  if (!loading && !user) {
+    return <Redirect href="/" />
+  }
+  
   return (
     <>
       <Tabs

@@ -1,5 +1,6 @@
 import { auth } from "@/configs/firebase-config";
 import { getUserInfo, logOut, resetPassword, signIn, signUp } from "@/libs/firebase";
+import { signInWithGoogle } from "@/libs/google-auth";
 import { User } from "@firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -12,6 +13,7 @@ interface GlobalContextType {
   loading: boolean;
   signup: (name: string, email: string, password: string) => Promise<User | void>;
   signin: (email: string, password: string) => Promise<User | void>;
+  signinWithGoogle: () => Promise<User | void>;
   logout: () => Promise<void>;
   resetpassword: (email: string) => Promise<void>;
   updateUserData: (id: string) => Promise<void>
@@ -23,6 +25,7 @@ const GlobalContext = createContext<GlobalContextType>({
   loading: true,
   signup: async () => { },
   signin: async () => { },
+  signinWithGoogle: async () => { },
   logout: async () => { },
   resetpassword: async () => { },
   updateUserData: async () => { }
@@ -89,6 +92,21 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signinWithGoogle = async () => {
+    try {
+      const newUser = await signInWithGoogle();
+      if (newUser) {
+        // const data = await getUserInfo(newUser.uid);
+        // setUserInfo(data);
+        setUser(newUser);
+        await updateUserData(newUser.uid)
+        return newUser;
+      }
+    } catch (error) {
+      console.error('Error signing in:', error);
+    }
+  };
+
   const signup = async (name: string, email: string, password: string) => {
     try {
       const newUser = await signUp(name, email, password);
@@ -104,11 +122,18 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await logOut();
-      setUser(null);
-      setUserInfo(undefined);
-      await AsyncStorage.removeItem('userInfo');
-      router.push('/');
+      if (user) {
+        await logOut(user.uid);
+        setUser(null);
+        setUserInfo(undefined);
+        await AsyncStorage.removeItem('userInfo');
+        router.replace({
+          pathname: "/",
+          params: {
+            reset: "true"
+          }
+        });
+      }
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -134,6 +159,7 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         userInfo,
         loading,
         signin,
+        signinWithGoogle,
         signup,
         logout,
         resetpassword,
@@ -146,4 +172,3 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default GlobalProvider;
-;

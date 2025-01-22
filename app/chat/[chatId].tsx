@@ -10,9 +10,8 @@ import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion } fr
 
 const Chat = () => {
   const { user } = useGlobalContext()
-  const { chatId, currentUserId, otherUserId, otherUserName, otherUserPhotoUrl, initialMessage } = useLocalSearchParams() as {
+  const { chatId, otherUserId, otherUserName, otherUserPhotoUrl, initialMessage } = useLocalSearchParams() as {
     chatId: string,
-    currentUserId: string,
     otherUserId: string,
     otherUserName: string,
     otherUserPhotoUrl: string,
@@ -44,7 +43,7 @@ const Chat = () => {
       }
 
       updateDoc(doc(db, "chats", chatId), {
-        lastMessageReadBy: arrayUnion(currentUserId),
+        lastMessageReadBy: arrayUnion(user?.uid),
       });
 
       if (initialLoad) {
@@ -63,7 +62,7 @@ const Chat = () => {
     if (!newMessage.trim()) return
 
     setNewMessage('')
-    sendMessage(chatId, currentUserId, user?.displayName, newMessage)
+    sendMessage(chatId, user?.uid, user?.displayName, user?.photoURL, newMessage)
 
     setTimeout(() => {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
@@ -89,14 +88,14 @@ const Chat = () => {
   const renderMessage = ({ item }: { item: any }) => (
     <View
       className={`shadow border border-gray-600 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
-        ${item.senderId === currentUserId ?
+        ${item.senderId === user?.uid ?
           'bg-sky-100 ml-auto rounded-br-sm' :
           'bg-gray-100 rounded-tl-sm'}
       `}
     >
       <View className='flex-row justify-between mb-1'>
         <Text className='text-sm font-pmedium text-gray-500'>
-          {item.senderId === currentUserId ? 'You' : otherUserName.split(' ')[0]}
+          {item.senderId === user?.uid ? 'You' : otherUserName.split(' ')[0]}
         </Text>
         <Text className='text-xs font-pmedium text-gray-500'>
           {item.timestamp && new Date(item.timestamp.toDate()).toLocaleTimeString([], {
@@ -116,8 +115,13 @@ const Chat = () => {
         <TouchableOpacity className='p-5' onPress={() => router.back()}>
           <MaterialCommunityIcons name='arrow-left' size={28} />
         </TouchableOpacity>
-        <Image source={{uri: otherUserPhotoUrl }} className='h-10 w-10 border rounded-lg'/>
-        <Text className='text-2xl font-encode ml-3' numberOfLines={1}>{otherUserName}</Text>
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/chat/view-profile', params: { id: otherUserId } })}
+          className='flex-row items-center'
+        >
+          <Image source={{ uri: otherUserPhotoUrl }} className='h-10 w-10 border rounded-lg' />
+          <Text className='text-2xl font-encode ml-3' numberOfLines={1}>{otherUserName}</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList

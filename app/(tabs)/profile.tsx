@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '@/context/GlobalProvider'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import images from '@/constants/images'
 import CustomModal from '@/components/CustomModal'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 

@@ -57,7 +57,7 @@ const SearchForm = () => {
           <View className="mt-10">
             <Text className="font-pmedium text-lg">Project Details</Text>
             <TextInput
-              className="border h-40 align-text-top border-gray-300 mt-2 p-4 rounded-xl"
+              className="border h-40 align-text-top border-gray-500 mt-2 p-4 rounded-xl"
               placeholder="Enter your Project Title"
               numberOfLines={10}
               value={projectDetails}
@@ -77,7 +77,7 @@ const SearchForm = () => {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                className="border border-gray-700 rounded-xl py-3 px-4"
+                className="border border-gray-500 rounded-xl py-3 px-4"
               />
               {showSuggestions && filteredSkills.length > 0 && (
                 <View className="absolute bottom-full left-0 right-0 shadow-lg shadow-black bg-white border border-gray-300 rounded-lg mb-2 z-10">
