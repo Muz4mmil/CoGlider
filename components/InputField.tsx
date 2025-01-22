@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, KeyboardTypeOptions } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, KeyboardTypeOptions } from 'react-native'
 import React, { useState } from 'react'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 

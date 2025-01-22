@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native'
+import { Text, Alert } from 'react-native'
 import React, { useEffect, useMemo, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SkillsScreen } from '@/components/SkillsScreen'

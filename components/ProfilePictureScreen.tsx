@@ -1,10 +1,9 @@
-import { View, Text, Image, Alert, TextInput } from 'react-native'
+import { View, Text, Image, Alert } from 'react-native'
 import React, { SetStateAction } from 'react'
 import Button from '@/components/Button'
 import * as ImagePicker from 'expo-image-picker'
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { ImagePickerAsset } from 'expo-image-picker'
-import images from '@/constants/images';
 import { router } from 'expo-router';
 
 type ProfilePictureScreenProps = {

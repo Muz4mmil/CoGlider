@@ -1,10 +1,9 @@
-import { View, Text, Alert } from 'react-native'
+import { Text, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LocationScreen } from '@/components/LocationScreen'
 import { useGlobalContext } from '@/context/GlobalProvider'
 import { updateLocation } from '@/libs/firebase'
-import { ImagePickerAsset } from 'expo-image-picker'
 import { router } from 'expo-router'
 
 const UpdateLocation = () => {

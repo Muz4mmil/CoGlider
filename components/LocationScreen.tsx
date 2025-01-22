@@ -1,4 +1,4 @@
-import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, Alert, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { SetStateAction, useState } from 'react'
 import Button from '@/components/Button'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';

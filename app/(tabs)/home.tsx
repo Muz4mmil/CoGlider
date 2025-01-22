@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useGlobalContext } from '@/context/GlobalProvider'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Button from '@/components/Button'

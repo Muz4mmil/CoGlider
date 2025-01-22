@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, Modal, ScrollView } from 'react-native'
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '@/context/GlobalProvider'
 import { router } from 'expo-router'

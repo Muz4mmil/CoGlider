@@ -36,7 +36,9 @@
       "android": {
         "env": {
           "GOOGLE_SERVICES_JSON_FILE": "google-services.json"
-        }
+        },
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
       "ios": {
         "env": {
