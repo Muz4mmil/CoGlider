@@ -7,12 +7,12 @@ import InputField from "@/components/InputField";
 import { StatusBar } from "expo-status-bar";
 import * as Animatable from "react-native-animatable";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { Redirect, router } from "expo-router";
+import { Redirect } from "expo-router";
 
 export default function Index() {
   const { loading, user, userInfo, signup, signin, signinWithGoogle } = useGlobalContext();
   const [currentScreen, setCurrentScreen] = useState("welcome");
-  const [form, setform] = useState({
+  const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
@@ -20,11 +20,10 @@ export default function Index() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [googleSignInLoading, setGoogleSignInLoading] = useState(false)
+  const [googleSignInLoading, setGoogleSignInLoading] = useState(false);
 
   const scaleAnim = useRef(new Animated.Value(currentScreen === "welcome" ? 1.5 : 1)).current;
   const translateYAnim = useRef(new Animated.Value(currentScreen === "welcome" ? 40 : 0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const scaleAnimation = Animated.timing(scaleAnim, {
@@ -37,12 +36,9 @@ export default function Index() {
       toValue: currentScreen === "welcome" ? 40 : 0,
       duration: 500,
       useNativeDriver: true,
-    })
+    });
 
-    Animated.parallel([
-      scaleAnimation,
-      translateAnimation,
-    ]).start();
+    Animated.parallel([scaleAnimation, translateAnimation]).start();
   }, [currentScreen]);
 
   if (loading) {
@@ -75,57 +71,33 @@ export default function Index() {
     try {
       if (currentScreen === "signup") {
         if (!form.name || !form.email || !form.password) {
-          setError('All fields are required')
+          setError('All fields are required');
           return;
         }
 
-        const user = await signup(form.name, form.email, form.password);
-        if (user) {
-          router.replace("/onboard");
-        } else {
-          setError("Failed to create user");
-        }
+        await signup(form.name, form.email, form.password);
       } else {
         if (!form.email || !form.password) {
-          setError('All fields are required')
+          setError('All fields are required');
           return;
         }
-        const user = await signin(form.email, form.password);
-        if (user) {
-          router.replace("/home");
-        } else {
-          setError("Invalid email or password");
-        }
+        await signin(form.email, form.password);
       }
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setIsLoading(false);
     }
   };
-
 
   const handleGoogleSignIn = async () => {
     setGoogleSignInLoading(true);
     setError("");
 
     try {
-      const user = await signinWithGoogle();
-      if (user) {
-        router.replace("/home");
-      } else {
-        setError("Failed to Login with Google");
-      }
+      await signinWithGoogle();
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setGoogleSignInLoading(false);
     }
@@ -134,11 +106,9 @@ export default function Index() {
   return (
     <SafeAreaView className="h-full bg-white justify-center items-center">
       <ScrollView className="w-full px-4">
-        {/* Welcome Animation */}
         <Animated.View
           className="mb-10 mt-14 items-center justify-center"
           style={{
-            opacity: opacityAnim,
             transform: [
               { scale: scaleAnim },
               { translateY: translateYAnim },
@@ -149,7 +119,6 @@ export default function Index() {
           <Text className="text-4xl font-encode">CoGlider</Text>
         </Animated.View>
 
-        {/* Welcome Screen */}
         {currentScreen === "welcome" ? (
           <View className="mt-16">
             <Image source={images.welcome} className="w-full h-80" resizeMode="cover" />
@@ -175,14 +144,14 @@ export default function Index() {
                 <InputField
                   title="Name"
                   value={form.name}
-                  handleChange={(e) => setform({ ...form, name: e })}
+                  handleChange={(e) => setForm({ ...form, name: e })}
                   placeholder="Enter your name"
                 />
               )}
               <InputField
                 title="Email"
                 value={form.email}
-                handleChange={(e) => setform({ ...form, email: e })}
+                handleChange={(e) => setForm({ ...form, email: e })}
                 placeholder="Enter your Email"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -190,7 +159,7 @@ export default function Index() {
               <InputField
                 title="Password"
                 value={form.password}
-                handleChange={(e) => setform({ ...form, password: e })}
+                handleChange={(e) => setForm({ ...form, password: e })}
                 autoCapitalize="none"
                 placeholder="Enter a strong Password"
               />

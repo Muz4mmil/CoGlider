@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useGlobalContext } from '@/context/GlobalProvider'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomModal from '@/components/CustomModal'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -10,15 +10,17 @@ const Profile = () => {
   const { logout, user, userInfo, updateUserData } = useGlobalContext()
   const [confirmLogoutVisible, setConfirmLogoutVisible] = useState(false)
 
-  useEffect(() => {
-    const updateData = async () => {
-      if (user?.uid) {
-        await updateUserData(user?.uid)
+  useFocusEffect(
+    useCallback(() => {
+      const updateData = async () => {
+        if (user?.uid) {
+          await updateUserData(user?.uid)
+        }
       }
-    }
 
-    updateData()
-  }, [])
+      updateData()
+    }, [user?.uid, updateUserData]) // Add dependencies to avoid unnecessary calls
+  )
 
   return (
     <SafeAreaView className='bg-white flex-1'>

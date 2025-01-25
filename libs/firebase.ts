@@ -1,8 +1,9 @@
 import { auth, db } from "@/configs/firebase-config";
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile } from "@firebase/auth";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithCredential } from "@firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios'
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export const signUp = async (name: string, email: string, password: string) => {
   try {
@@ -54,6 +55,48 @@ export const signIn = async (email: string, password: string) => {
   }
 }
 
+export const signInWithGoogle = async () => {
+  try {
+    const response = await GoogleSignin.signIn();
+    const idToken = response.data?.idToken;
+
+    const googleCredential = GoogleAuthProvider.credential(idToken);
+
+    const authUser = await signInWithCredential(auth, googleCredential);
+
+    const user = authUser.user
+
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      await setDoc(docRef, {
+        name: user.displayName,
+        email: user.email,
+        address: '',
+        location: {
+          long: "0",
+          lat: "0",
+        },
+        skills: [],
+        photoUrl: user.photoURL || `default-photo-url`,
+        hasCompletedOnboarding: false,
+      });
+      return user;
+    } else {
+      const userData = docSnap.data();
+      if (!userData.hasCompletedOnboarding) {
+        return user;
+      }
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Error signing in with Google: ', error);
+    throw error;
+  }
+};
+
 export const logOut = async (userId: string) => {
   try {
     await updateDoc(doc(db, 'users', userId), {
@@ -64,6 +107,15 @@ export const logOut = async (userId: string) => {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+export const googleLogout = () => {
+  try {
+    GoogleSignin.revokeAccess()
+    GoogleSignin.signOut()
+  } catch (error) {
+    console.error('Error signing out with Google: ', error);
   }
 }
 
@@ -99,6 +151,7 @@ export const getUserInfo = async (userId: any) => {
 
     if (!docSnap.exists()) {
       console.log("No such document!");
+      return null
     }
 
     return docSnap.data();
@@ -131,7 +184,7 @@ export const updateProfilePicture = async (file: any, user: any) => {
     type: 'image/jpeg',
     name: file.uri.split('/').pop() || 'photo.jpg',
   };
-  
+
   formData.append('file', imageFile);
   formData.append('upload_preset', 'native');
 

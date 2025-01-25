@@ -26,12 +26,18 @@ export const createRoom = async (myId: string, userId: string) => {
   return newChat.id;
 }
 
-export const sendMessage = async (chatId: string, userId: string | undefined, senderName: string | null | undefined, senderImage: string | null | undefined, text: string) => {
+export const sendMessage = async (
+  chatId: string,
+  userId: string | undefined,
+  senderName: string | null | undefined,
+  senderImage: string | null | undefined,
+  text: string
+) => {
   const messageData = {
     senderId: userId,
     text,
     timestamp: serverTimestamp(),
-    read: false,
+    readBy: [userId],
   };
 
   try {
@@ -65,7 +71,7 @@ export const sendMessage = async (chatId: string, userId: string | undefined, se
               to: recipientToken,
               title: senderName,
               body: text,
-              data: { chatId, senderId: userId, senderName, senderImage }
+              data: { chatId, senderId: userId, senderName, senderImage },
             }),
           });
         }

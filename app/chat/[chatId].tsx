@@ -1,73 +1,77 @@
-import { View, Text, TouchableOpacity, FlatList, TextInput, Image, Linking } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
-import { router, useLocalSearchParams } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useGlobalContext } from '@/context/GlobalProvider'
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
-import { sendMessage } from '@/libs/firebase-messaging'
-import { db } from '@/configs/firebase-config'
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion } from 'firebase/firestore'
+import { View, Text, TouchableOpacity, FlatList, TextInput, Image, Linking } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { sendMessage } from '@/libs/firebase-messaging';
+import { db } from '@/configs/firebase-config';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion } from 'firebase/firestore';
 
 const Chat = () => {
-  const { user } = useGlobalContext()
+  const { user } = useGlobalContext();
   const { chatId, otherUserId, otherUserName, otherUserPhotoUrl, initialMessage } = useLocalSearchParams() as {
-    chatId: string,
-    otherUserId: string,
-    otherUserName: string,
-    otherUserPhotoUrl: string,
-    initialMessage?: string
-  }
+    chatId: string;
+    otherUserId: string;
+    otherUserName: string;
+    otherUserPhotoUrl: string;
+    initialMessage?: string;
+  };
 
-  const flatListRef = useRef<FlatList>(null)
-  const [messages, setMessages] = useState<{ [key: string]: any; id: string; }[]>([])
-  const [newMessage, setNewMessage] = useState('')
-  const [initialLoad, setInitialLoad] = useState(true)
+  const flatListRef = useRef<FlatList>(null);
+  const [messages, setMessages] = useState<{ [key: string]: any; id: string }[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  const messagesRef = collection(db, "chats", chatId, "messages")
+  const messagesRef = collection(db, 'chats', chatId, 'messages');
 
   useEffect(() => {
-    const q = query(messagesRef, orderBy("timestamp", "desc"))
+    const q = query(messagesRef, orderBy('timestamp', 'desc'));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const newMessages = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
-      }))
+        ...doc.data(),
+      }));
 
-      setMessages(newMessages)
+      setMessages(newMessages);
+
+      newMessages.forEach(async (message: { [key: string]: any; id: string }) => {
+        if (message.senderId !== user?.uid && !message.readBy?.includes(user?.uid)) {
+          await updateDoc(doc(db, 'chats', chatId, 'messages', message.id), {
+            readBy: arrayUnion(user?.uid),
+          });
+        }
+      });
 
       if (!initialLoad && flatListRef.current && newMessages.length > messages.length) {
         setTimeout(() => {
-          flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
-        }, 100)
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        }, 100);
       }
-
-      updateDoc(doc(db, "chats", chatId), {
-        lastMessageReadBy: arrayUnion(user?.uid),
-      });
 
       if (initialLoad) {
-        setInitialLoad(false)
+        setInitialLoad(false);
       }
-    })
+    });
 
-    return () => unsubscribe()
-  }, [messages.length])
+    return () => unsubscribe();
+  }, [messages.length]);
 
   useEffect(() => {
-    if (initialMessage) setNewMessage(initialMessage)
-  }, [])
+    if (initialMessage) setNewMessage(initialMessage);
+  }, []);
 
   const handleSend = () => {
-    if (!newMessage.trim()) return
+    if (!newMessage.trim()) return;
 
-    setNewMessage('')
-    sendMessage(chatId, user?.uid, user?.displayName, user?.photoURL, newMessage)
+    setNewMessage('');
+    sendMessage(chatId, user?.uid, user?.displayName, user?.photoURL, newMessage);
 
     setTimeout(() => {
-      flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
-    }, 100)
-  }
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, 100);
+  };
 
   const renderMessageTextWithLink = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -76,7 +80,7 @@ const Chat = () => {
     return parts.map((part, index) => {
       if (urlRegex.test(part)) {
         return (
-          <Text key={index} className='text-blue-600' onPress={() => Linking.openURL(part)}>
+          <Text key={index} className="text-blue-600" onPress={() => Linking.openURL(part)}>
             {part}
           </Text>
         );
@@ -87,40 +91,51 @@ const Chat = () => {
 
   const renderMessage = ({ item }: { item: any }) => (
     <View
-      className={`shadow border border-gray-600 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl
-        ${item.senderId === user?.uid ?
-          'bg-sky-100 ml-auto rounded-br-sm' :
-          'bg-gray-100 rounded-tl-sm'}
-      `}
+      className={`shadow border border-gray-600 px-4 py-2 mb-2 mt-2 w-4/5 rounded-2xl ${
+        item.senderId === user?.uid ? 'bg-sky-100 ml-auto rounded-br-sm' : 'bg-gray-100 rounded-tl-sm'
+      }`}
     >
-      <View className='flex-row justify-between mb-1'>
-        <Text className='text-sm font-pmedium text-gray-500'>
+      <View className="flex-row justify-between mb-1">
+        <Text className="text-sm font-pmedium text-gray-500">
           {item.senderId === user?.uid ? 'You' : otherUserName.split(' ')[0]}
         </Text>
-        <Text className='text-xs font-pmedium text-gray-500'>
-          {item.timestamp && new Date(item.timestamp.toDate()).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-          })}
+        <Text className="text-xs font-pmedium text-gray-500">
+          {item.timestamp &&
+            new Date(item.timestamp.toDate()).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })}
         </Text>
       </View>
-      <Text className='text-lg font-pregular'>{renderMessageTextWithLink(item.text)}</Text>
+      <Text className="text-lg font-pregular">{renderMessageTextWithLink(item.text)}</Text>
+
+      {item.senderId === user?.uid && (
+        <View className="flex-row justify-end mt-1">
+          {item.readBy?.includes(otherUserId) ? (
+            <MaterialCommunityIcons name="check-all" size={14} color="#0284c7" />
+          ) : (
+            <MaterialCommunityIcons name="check" size={14} color="#9E9E9E" />
+          )}
+        </View>
+      )}
     </View>
-  )
+  );
 
   return (
-    <SafeAreaView className='bg-white flex-1'>
-      <View className='flex-row items-center border-b border-gray-200 z-50 bg-white'>
-        <TouchableOpacity className='p-5' onPress={() => router.back()}>
-          <MaterialCommunityIcons name='arrow-left' size={28} />
+    <SafeAreaView className="bg-white flex-1">
+      <View className="flex-row items-center border-b border-gray-200 z-50 bg-white">
+        <TouchableOpacity className="p-5" onPress={() => router.back()}>
+          <MaterialCommunityIcons name="arrow-left" size={28} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push({ pathname: '/chat/view-profile', params: { id: otherUserId } })}
-          className='flex-row items-center'
+          className="flex-row items-center"
         >
-          <Image source={{ uri: otherUserPhotoUrl }} className='h-10 w-10 border rounded-lg' />
-          <Text className='text-2xl font-encode ml-3' numberOfLines={1}>{otherUserName}</Text>
+          <Image source={{ uri: otherUserPhotoUrl }} className="h-10 w-10 border rounded-lg" />
+          <Text className="text-2xl font-encode ml-3" numberOfLines={1}>
+            {otherUserName}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -130,24 +145,24 @@ const Chat = () => {
         inverted={true}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
-        className='px-4 flex-1'
+        className="px-4 flex-1"
         maintainVisibleContentPosition={{
           minIndexForVisible: 0,
-          autoscrollToTopThreshold: 10
+          autoscrollToTopThreshold: 10,
         }}
         onContentSizeChange={() => {
           if (initialLoad) {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: false })
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
           }
         }}
       />
 
-      <View className='flex-row items-center justify-center gap-4 py-4 bg-white border-t border-gray-200 mx-4'>
+      <View className="flex-row items-center justify-center gap-4 py-4 bg-white border-t border-gray-200 mx-4">
         <TextInput
-          className='flex-1 w-full h-full text-xl font-pregular border-2 rounded-2xl p-2 px-4'
+          className="flex-1 w-full h-full text-xl font-pregular border-2 rounded-2xl p-2 px-4"
           value={newMessage}
-          keyboardType='default'
-          placeholder='Message'
+          keyboardType="default"
+          placeholder="Message"
           placeholderTextColor={'#7b7b8b'}
           onChangeText={setNewMessage}
           numberOfLines={6}
@@ -155,13 +170,13 @@ const Chat = () => {
         />
         <TouchableOpacity
           onPress={handleSend}
-          className='border-2 items-center justify-center rounded-2xl p-4 ml-[-2px] bg-sky-200'
+          className="border-2 items-center justify-center rounded-2xl p-4 ml-[-2px] bg-sky-200"
         >
-          <MaterialCommunityIcons name='send' size={28} />
+          <MaterialCommunityIcons name="send" size={28} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Chat
+export default Chat;

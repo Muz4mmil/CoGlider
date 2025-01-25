@@ -27,11 +27,15 @@ const TabIcon = ({ name, focused, iconName }: TabIconProps) => {
 };
 
 const TabsLayout = () => {
-  const {user, loading} = useGlobalContext()
+  const {user, loading, userInfo} = useGlobalContext()
 
   if (!loading && !user) {
     return <Redirect href="/" />
   }
+
+  // if (userInfo && !userInfo.hasCompletedOnboarding) {
+  //   return <Redirect href="/onboard" />
+  // }
   
   return (
     <>
