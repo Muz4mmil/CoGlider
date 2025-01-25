@@ -8,7 +8,6 @@ import { StatusBar } from "expo-status-bar";
 import * as Animatable from "react-native-animatable";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { Redirect, router } from "expo-router";
-import { getUserInfo } from "@/libs/firebase";
 
 export default function Index() {
   const { loading, user, userInfo, signup, signin, signinWithGoogle } = useGlobalContext();
@@ -56,7 +55,7 @@ export default function Index() {
 
   if (user) {
     if (userInfo) {
-      console.log("routing from index check")
+      console.log("Routing from Index")
       if (!userInfo.hasCompletedOnboarding) {
         return <Redirect href="/onboard" />;
       }
@@ -83,7 +82,6 @@ export default function Index() {
 
         const user = await signup(form.name, form.email, form.password);
         if (user) {
-          // console.log("Routing from Submit")
           // router.replace("/onboard");
         } else {
           setError("Failed to create user");
@@ -95,7 +93,6 @@ export default function Index() {
         }
         const user = await signin(form.email, form.password);
         if (user) {
-          // console.log("Routing from Submit")
           // router.replace("/home");
         } else {
           setError("Invalid email or password");
@@ -113,38 +110,27 @@ export default function Index() {
   };
 
 
-  // In handleGoogleSignIn method
-const handleGoogleSignIn = async () => {
-  setGoogleSignInLoading(true);
-  setError("");
+  const handleGoogleSignIn = async () => {
+    setGoogleSignInLoading(true);
+    setError("");
 
-  try {
-    const user = await signinWithGoogle();
-    if (user) {
-      // console.log('Google Sign In - User:', user.uid);
-      // console.log('UserInfo before routing:', userInfo);
-      
-      // if (!userInfo?.hasCompletedOnboarding) {
-      //   console.log('Routing to Onboard');
-      //   router.replace("/onboard");
-      // } else {
-      //   console.log('Routing to Home');
-      //   router.replace("/home");
-      // }
-      console.log("Google success")
-    } else {
-      setError("Failed to Login with Google");
+    try {
+      const user = await signinWithGoogle();
+      if (user) {
+        // router.replace("/home");
+      } else {
+        setError("Failed to Login with Google");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+    } finally {
+      setGoogleSignInLoading(false);
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      setError(error.message);
-    } else {
-      setError("An unknown error occurred");
-    }
-  } finally {
-    setGoogleSignInLoading(false);
-  }
-};
+  };
 
   return (
     <SafeAreaView className="h-full bg-white justify-center items-center">

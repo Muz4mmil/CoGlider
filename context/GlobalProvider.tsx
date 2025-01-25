@@ -51,15 +51,8 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateUserData = async (id: string) => {
     const data = await getUserInfo(id);
-    if (data) {
-      // Use Promise.all to ensure both storage and state update happen together
-      await Promise.all([
-        AsyncStorage.setItem('userInfo', JSON.stringify(data)),
-        // Add a small delay to ensure state update
-        new Promise(resolve => setTimeout(resolve, 500))
-      ]);
-      setUserInfo(data);
-    }
+    await AsyncStorage.setItem('userInfo', JSON.stringify(data))
+    setUserInfo(data);
   }
 
   useEffect(() => {
