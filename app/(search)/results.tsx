@@ -89,13 +89,9 @@ const Results = () => {
     }
   };
 
-  const outOfFrame = (name: string, idx: number) => {
-    console.log(`${name} (${idx}) left the screen!`);
-  };
-
   const swipe = async (dir: string) => {
     if (canSwipe && currentIndex < matchingUsers.length) {
-      await childRefs[currentIndex].current.swipe(dir);
+      await (childRefs[currentIndex].current as any).swipe(dir);
     }
   };
 
@@ -103,7 +99,7 @@ const Results = () => {
     if (!canGoBack) return;
     const newIndex = currentIndex + 1;
     updateCurrentIndex(newIndex);
-    await childRefs[newIndex].current.restoreCard();
+    await (childRefs[currentIndex].current as any).restoreCard();
   };
 
   const handleRefresh = () => {
@@ -140,7 +136,6 @@ const Results = () => {
         ref={childRefs[index]}
         key={user.id}
         onSwipe={(dir) => swiped(dir, user.id, index)}
-        onCardLeftScreen={() => outOfFrame(user.name, index)}
       >
         <View
           style={{ backgroundColor: user.cardColor }}

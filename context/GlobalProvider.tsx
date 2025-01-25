@@ -11,25 +11,25 @@ interface GlobalContextType {
   user: User | null;
   userInfo: DocumentData | undefined;
   loading: boolean;
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  signin: (email: string, password: string) => Promise<void>;
-  signinWithGoogle: () => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<User | void>;
+  signin: (email: string, password: string) => Promise<User | void>;
+  signinWithGoogle: () => Promise<User | void>;
   logout: () => Promise<void>;
   resetpassword: (email: string) => Promise<void>;
-  updateUserData: (id: string) => Promise<void>;
+  updateUserData: (id: string) => Promise<void>
 }
 
 const GlobalContext = createContext<GlobalContextType>({
   user: null,
   userInfo: undefined,
   loading: true,
-  signup: async () => {},
-  signin: async () => {},
-  signinWithGoogle: async () => {},
-  logout: async () => {},
-  resetpassword: async () => {},
-  updateUserData: async () => {},
-});
+  signup: async () => { },
+  signin: async () => { },
+  signinWithGoogle: async () => { },
+  logout: async () => { },
+  resetpassword: async () => { },
+  updateUserData: async () => { }
+})
 
 export const useGlobalContext = () => useContext(GlobalContext);
 
@@ -52,10 +52,15 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUserData = async (id: string) => {
     const data = await getUserInfo(id);
     if (data) {
-      await AsyncStorage.setItem('userInfo', JSON.stringify(data));
+      // Use Promise.all to ensure both storage and state update happen together
+      await Promise.all([
+        AsyncStorage.setItem('userInfo', JSON.stringify(data)),
+        // Add a small delay to ensure state update
+        new Promise(resolve => setTimeout(resolve, 500))
+      ]);
       setUserInfo(data);
     }
-  };
+  }
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
@@ -63,11 +68,13 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         if (authUser) {
           setUser(authUser);
-          await updateUserData(authUser.uid);
+          await fetchStoredUserInfo();
+          // const data = await getUserInfo(authUser.uid);
+          // setUserInfo(data);
+          await updateUserData(authUser.uid)
         } else {
           setUser(null);
           setUserInfo(undefined);
-          await AsyncStorage.removeItem('userInfo');
         }
       } catch (error) {
         console.error('Error in auth state change:', error);
@@ -83,10 +90,12 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const newUser = await signIn(email, password);
       setUser(newUser);
-      await updateUserData(newUser.uid);
+      // const data = await getUserInfo(newUser.uid);
+      // setUserInfo(data);
+      await updateUserData(newUser.uid)
+      return newUser;
     } catch (error) {
       console.error('Error signing in:', error);
-      throw error;
     }
   };
 
@@ -94,12 +103,14 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const newUser = await signInWithGoogle();
       if (newUser) {
+        // const data = await getUserInfo(newUser.uid);
+        // setUserInfo(data);
         setUser(newUser);
-        await updateUserData(newUser.uid);
+        // await updateUserData(newUser.uid)
+        return newUser;
       }
     } catch (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
+      console.error('Error signing in:', error);
     }
   };
 
@@ -107,10 +118,12 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const newUser = await signUp(name, email, password);
       setUser(newUser);
-      await updateUserData(newUser.uid);
+      // const data = await getUserInfo(newUser.uid);
+      // setUserInfo(data);
+      await updateUserData(newUser.uid)
+      return newUser;
     } catch (error) {
       console.error('Error signing up:', error);
-      throw error;
     }
   };
 
@@ -121,11 +134,15 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         setUserInfo(undefined);
         await AsyncStorage.removeItem('userInfo');
-        router.replace("/");
+        router.replace({
+          pathname: "/",
+          params: {
+            reset: "true"
+          }
+        });
       }
     } catch (error) {
       console.error('Error logging out:', error);
-      throw error;
     }
   };
 
@@ -138,6 +155,10 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  useEffect(() => {
+    console.log('User Info:', userInfo);
+  }, [userInfo]);
+
   return (
     <GlobalContext.Provider
       value={{
@@ -149,7 +170,7 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         signup,
         logout,
         resetpassword,
-        updateUserData,
+        updateUserData
       }}
     >
       {children}
