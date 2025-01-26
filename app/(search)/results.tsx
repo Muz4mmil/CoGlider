@@ -91,7 +91,7 @@ const Results = () => {
 
   const swipe = async (dir: string) => {
     if (canSwipe && currentIndex < matchingUsers.length) {
-      await childRefs[currentIndex].current.swipe(dir);
+      await (childRefs[currentIndex].current as any).swipe(dir);
     }
   };
 
@@ -99,7 +99,7 @@ const Results = () => {
     if (!canGoBack) return;
     const newIndex = currentIndex + 1;
     updateCurrentIndex(newIndex);
-    await childRefs[newIndex].current.restoreCard();
+    await (childRefs[newIndex].current as any).restoreCard();
   };
 
   const handleRefresh = () => {
