@@ -50,6 +50,10 @@ const Chat = () => {
         }, 100);
       }
 
+      updateDoc(doc(db, "chats", chatId), {
+        lastMessageReadBy: arrayUnion(user?.uid),
+      });
+
       if (initialLoad) {
         setInitialLoad(false);
       }
