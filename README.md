@@ -42,10 +42,9 @@
 ## Screenshots
 
 | <img src="./screenshots/ss-welcome.png" width="200px" /> | <img src="./screenshots/ss-signup.png" width="200px" /> | <img src="./screenshots/ss-home.png" width="200px" /> |
-|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|
-| <img src="./screenshots/ss-project.png" width="200px" /> | <img src="./screenshots/ss-results.png" width="200px" /> | <img src="./screenshots/ss-chat.png" width="200px" /> |
-|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|
-| <img src="./screenshots/ss-profile.png" width="200px" /> | <img src="./screenshots/ss-skills.png" width="200px" /> | <img src="./screenshots/ss-location.png" width="200px" /> |
+|----------------------------------------------------------|----------------------------------------------------------|--------------------------------------------------------|
+| <img src="./screenshots/ss-project.png" width="200px" />  | <img src="./screenshots/ss-results.png" width="200px" />  | <img src="./screenshots/ss-chat.png" width="200px" />   |
+| <img src="./screenshots/ss-profile.png" width="200px" />  | <img src="./screenshots/ss-skills.png" width="200px" />   | <img src="./screenshots/ss-location.png" width="200px" /> |
 
 ## Roadmap
 
