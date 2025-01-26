@@ -143,29 +143,29 @@ const Results = () => {
         >
           <Image
             source={{ uri: user.photoUrl }}
-            className="h-40 w-40 rounded-3xl border-2 border-black bg-gray-100"
+            className="h-28 w-28 rounded-2xl border-2 border-black bg-gray-100"
           />
 
           <Text className="mt-4 text-2xl font-pbold text-center text-gray-900">{user.name}</Text>
 
           <View className="w-full mt-6">
             <View className="flex-row justify-between">
-              <Text className="text-lg font-psemibold text-gray-700">Skills:</Text>
-              <Text className="font-pmedium text-gray-700">5 matched</Text>
+              <Text className="font-psemibold text-gray-700">Skills:</Text>
+              <Text className="text-sm font-pmedium text-gray-700">5 matched</Text>
             </View>
-            <View className="flex-row flex-wrap gap-2 mt-2">
+            <View className="flex-row flex-wrap gap-1 mt-2">
               {user.skills.map((skill, idx) => (
-                <View key={idx} className="rounded-lg bg-white px-3 py-1">
+                <View key={idx} className="rounded-lg bg-white px-2 py-0.5">
                   <Text className="font-pregular text-sm">{skill}</Text>
                 </View>
               ))}
             </View>
           </View>
 
-          <View className="w-full mt-10">
+          <View className="w-full mt-5">
             <View className="flex-row justify-between">
-              <Text className="text-lg font-psemibold text-gray-700">Address:</Text>
-              <Text className="font-pmedium text-gray-700">{user.distance.toFixed(1)} km away</Text>
+              <Text className="font-psemibold text-gray-700">Address:</Text>
+              <Text className="text-sm font-pmedium text-gray-700">{user.distance.toFixed(1)} km away</Text>
             </View>
             <Text className='font-pregular mt-2'>{user.address}</Text>
           </View>
